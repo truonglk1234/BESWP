@@ -2,9 +2,10 @@ package com.group1.project.swp_project.config; // Hoặc package của bạn
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity; // THÊM ANNOTATION NÀY
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -33,12 +34,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF cho API
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF cho API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()    // Cho phép API đăng ký/đăng nhập
+                        .requestMatchers("/api/auth/**").permitAll() // Cho phép API đăng ký/đăng nhập
                         .requestMatchers(SWAGGER_WHITELIST).permitAll() // <<<--- THÊM DÒNG NÀY ĐỂ CHO PHÉP SWAGGER
-                        .anyRequest().authenticated()                   // Các request khác vẫn cần xác thực
+                        .anyRequest().authenticated() // Các request khác vẫn cần xác thực
                 );
         return http.build();
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    // off Spring Security
+    // @Bean
+    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
+    // Exception {
+    // http.csrf().disable()
+    // .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+    // return http.build();
+    // }
+
 }

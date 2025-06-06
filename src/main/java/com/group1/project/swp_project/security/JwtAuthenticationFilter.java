@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.lang.NonNull;
+
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -69,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * register)
      */
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         List<String> excludedPaths = List.of("/auth/login", "/auth/register");
 
         String path = request.getRequestURI();

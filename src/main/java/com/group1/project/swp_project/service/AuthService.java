@@ -100,16 +100,21 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         // Find user by email or phone
-        User user = null;
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
-        } else if (request.getUserPhone() != null && !request.getUserPhone().isEmpty()) {
-            user = userRepository.findByUserPhone(request.getUserPhone())
-                    .orElseThrow(() -> new RuntimeException("Số điện thoại không tồn tại"));
-        } else {
-            throw new RuntimeException("Email hoặc số điện thoại không được để trống");
-        }
+        // User user = null;
+        // if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+        // user = userRepository.findByEmail(request.getEmail())
+        // .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
+        // } else if (request.getUserPhone() != null &&
+        // !request.getUserPhone().isEmpty()) {
+        // user = userRepository.findByUserPhone(request.getUserPhone())
+        // .orElseThrow(() -> new RuntimeException("Số điện thoại không tồn tại"));
+        // } else {
+        // throw new RuntimeException("Email hoặc số điện thoại không được để trống");
+        // }
+
+        // Find user by phone
+        User user = userRepository.findByUserPhone(request.getUserPhone())
+                .orElseThrow(() -> new RuntimeException("Số điện thoại không tồn tại"));
 
         // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

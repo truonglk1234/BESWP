@@ -56,4 +56,15 @@ public class User {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    @Column(name = "enabled")
+    private boolean enabled; // <-- LỖI NẰM Ở ĐÂY
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }

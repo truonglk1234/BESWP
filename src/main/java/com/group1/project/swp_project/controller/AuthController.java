@@ -1,9 +1,6 @@
 package com.group1.project.swp_project.controller;
 
-import com.group1.project.swp_project.dto.LoginRequest;
-import com.group1.project.swp_project.dto.LoginResponse;
-import com.group1.project.swp_project.dto.RegisterDto;
-import com.group1.project.swp_project.dto.VerificationRequest;
+import com.group1.project.swp_project.dto.*;
 import com.group1.project.swp_project.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -65,5 +62,18 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Resend verification code", description = "Generates and sends a new verification code to the user's email.")
+    @ApiResponse(responseCode = "200", description = "Verification code resent successfully.")
+    @ApiResponse(responseCode = "400", description = "Bad Request - User not found or already verified.")
+    @PostMapping("/resend-code")
+
+    public ResponseEntity<String> resendVerificationCode(@Valid @RequestBody ResendCodeRequest request){
+        try {
+            authService.resendVerificationCode(request.getEmail());
+            return ResponseEntity.ok("Mã xác thực mới đã được gửi đến email của bạn.");
+        }catch (RuntimeException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
 }

@@ -146,4 +146,34 @@ public class AuthService {
 
         tokenRepository.delete(verificationToken);
     }
+
+
+    @Transactional
+    public void  resendVerificationCode(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản nào với email này."));
+        if(user.isEnabled()){
+            throw new RuntimeException("Tài khoản này đã được kích hoạt");
+        }
+
+        VerificationToken verificationToken = tokenRepository.findByUser(user);
+        if(verificationToken == null){
+            String newCodeForNewToken = generateVerificationCode();
+            VerificationToken newToken = new VerificationToken(newCodeForNewToken, user);
+            tokenRepository.save(newToken);
+
+            emailService.sendVerificationEmail(user.getEmail(),"Mã xác thực tài khoản STI Health", newCodeForNewToken);
+
+            return;
+        }
+
+        String newCde = generateVerificationCode();
+
+        verificationToken.setToken(newCde);
+        verificationToken.resetExpiryDate();
+        tokenRepository.save(verificationToken);
+
+        String subject = "Mã xác thực tài khoản STI Health (Gửi lại)";
+        emailService.sendVerificationEmail(user.getEmail(),subject,newCde);
+    }
 }

@@ -6,8 +6,6 @@ import lombok.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class LoginRequest {
     private String email;      // có thể null nếu dùng phone
-    private String userPhone;  // có thể null nếu dùng email
-
     @NotBlank
     private String password;
 }

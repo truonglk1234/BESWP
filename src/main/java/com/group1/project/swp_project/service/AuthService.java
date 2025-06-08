@@ -1,10 +1,7 @@
 package com.group1.project.swp_project.service;
 
 // Các import cần thiết (SimpleMailMessage đã được xóa)
-import com.group1.project.swp_project.dto.LoginRequest;
-import com.group1.project.swp_project.dto.LoginResponse;
-import com.group1.project.swp_project.dto.RegisterDto;
-import com.group1.project.swp_project.dto.VerificationRequest;
+import com.group1.project.swp_project.dto.*;
 import com.group1.project.swp_project.entity.*;
 import com.group1.project.swp_project.repository.RoleRepository;
 import com.group1.project.swp_project.repository.UserRepository;
@@ -60,7 +57,7 @@ public class AuthService {
         if (registerDto.getPassword() == null || !registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
             throw new RuntimeException("Lỗi: Mật khẩu và xác nhận mật khẩu không khớp!");
         }
-        if (userRepository.existsByUserPhone(registerDto.getUserPhone())) {
+        if (userRepository.existsByUserPhone(registerDto.getPhone())) {
             throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng!");
         }
         if (registerDto.getEmail() != null && userRepository.existsByEmail(registerDto.getEmail())) {
@@ -73,7 +70,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Lỗi: Trạng thái người dùng '" + DEFAULT_STATUS_NAME + "' không tìm thấy."));
 
         User user = new User();
-        user.setUserPhone(registerDto.getUserPhone());
+        user.setUserPhone(registerDto.getPhone());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setEmail(registerDto.getEmail());
         user.setRole(userRole);
@@ -81,7 +78,7 @@ public class AuthService {
         user.setEnabled(false);
 
         Profile profile = new Profile();
-        profile.setFullName(registerDto.getFullName());
+        profile.setFullName(registerDto.getName());
         profile.setGender(registerDto.getGender());
         profile.setDataOfBirthday(registerDto.getDateOfBirthday());
         profile.setUser(user);
@@ -106,8 +103,8 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         // ... (giữ nguyên) ...
-        User user = userRepository.findByUserPhone(request.getUserPhone())
-                .orElseThrow(() -> new RuntimeException("Số điện thoại không tồn tại"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
         if (!user.isEnabled()) {
             throw new DisabledException("Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email của bạn.");
         }
@@ -175,5 +172,57 @@ public class AuthService {
 
         String subject = "Mã xác thực tài khoản STI Health (Gửi lại)";
         emailService.sendVerificationEmail(user.getEmail(),subject,newCde);
+    }
+
+    @Transactional
+    public void requestPasswordResetCode(String email) {
+        // 1. Tìm user bằng email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        // 2. Tạo mã mới
+        String code = generateVerificationCode();
+
+        // 3. Tìm xem user đã có token chưa
+        VerificationToken passwordResetToken = tokenRepository.findByUser(user);
+        if (passwordResetToken == null) {
+            // Nếu chưa có, tạo mới
+            passwordResetToken = new VerificationToken(code, user);
+        } else {
+            // Nếu có rồi, cập nhật lại mã và thời gian hết hạn
+            passwordResetToken.setToken(code);
+            passwordResetToken.resetExpiryDate();
+        }
+        tokenRepository.save(passwordResetToken);
+
+        // 4. Gửi email chứa mã
+        // Bạn nên tạo một template HTML mới cho việc này (password-reset-email.html)
+        String subject = "Mã đặt lại mật khẩu cho tài khoản STI Health";
+        emailService.sendVerificationEmail(user.getEmail(), subject, code); // Tái sử dụng phương thức gửi email
+    }
+
+    @Transactional
+    public void resetPasswordWithCode(ResetPasswordWithCodeRequest request) {
+        // 1. Kiểm tra mật khẩu mới và xác nhận mật khẩu
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp.");
+        }
+
+        // 2. Tìm user bằng email
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        // 3. Tìm token của user đó và xác thực
+        VerificationToken token = tokenRepository.findByUser(user);
+        if (token == null || !token.getToken().equals(request.getCode()) || token.getExpiryDate().before(new java.util.Date())) {
+            throw new RuntimeException("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+        }
+
+        // 4. Mã hóa mật khẩu mới và cập nhật cho user
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // 5. Xóa token sau khi đã sử dụng thành công
+        tokenRepository.delete(token);
     }
 }

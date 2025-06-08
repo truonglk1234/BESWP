@@ -76,4 +76,25 @@ public class AuthController {
         }
     }
 
+    @Operation(summary = "Request a password reset code", description = "Sends a password reset code to the user's email.")
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ResendCodeRequest request) {
+        try {
+            authService.requestPasswordResetCode(request.getEmail());
+            return ResponseEntity.ok("Một mã để đặt lại mật khẩu đã được gửi đến email của bạn.");
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @Operation(summary = "Reset user password with code", description = "Sets a new password for the user using a valid code.")
+    @PostMapping("/reset-password-with-code")
+    public ResponseEntity<String> resetPasswordWithCode(@Valid @RequestBody ResetPasswordWithCodeRequest request) {
+        try {
+            authService.resetPasswordWithCode(request);
+            return ResponseEntity.ok("Mật khẩu của bạn đã được đặt lại thành công.");
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

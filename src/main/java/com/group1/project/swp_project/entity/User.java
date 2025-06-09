@@ -28,7 +28,7 @@ public class User {
     private int id;
 
     @Column(name = "userphone", length = 50, nullable = true)
-    private String userPhone;
+    private String phone;
 
     @Column(name = "password", length = 200)
     private String password;
@@ -57,8 +57,9 @@ public class User {
         createdAt = LocalDateTime.now();
     }
 
+    // Trong User.java
     @Column(name = "enabled")
-    private boolean enabled; // <-- LỖI NẰM Ở ĐÂY
+    private Boolean enabled;
 
     public boolean isEnabled() {
         return enabled;

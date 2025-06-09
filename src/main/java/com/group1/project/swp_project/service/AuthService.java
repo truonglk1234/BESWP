@@ -56,7 +56,7 @@ public class AuthService {
         if (registerDto.getPassword() == null || !registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
             throw new RuntimeException("Lỗi: Mật khẩu và xác nhận mật khẩu không khớp!");
         }
-        if (userRepository.existsByUserPhone(registerDto.getPhone())) {
+        if (userRepository.existsByPhone(registerDto.getPhone())) {
             throw new RuntimeException("Lỗi: Số điện thoại này đã được sử dụng!");
         }
         if (registerDto.getEmail() != null && userRepository.existsByEmail(registerDto.getEmail())) {
@@ -71,7 +71,7 @@ public class AuthService {
                         "Lỗi: Trạng thái người dùng '" + DEFAULT_STATUS_NAME + "' không tìm thấy."));
 
         User user = new User();
-        user.setUserPhone(registerDto.getPhone());
+        user.setPhone(registerDto.getPhone());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setEmail(registerDto.getEmail());
         user.setRole(userRole);
@@ -112,7 +112,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không đúng");
         }
-        String token = jwtUtil.generateToken(user.getUserPhone(), user.getRole().getRoleName());
+        String token = jwtUtil.generateToken(user.getPhone(), user.getRole().getRoleName());
         return new LoginResponse(token, user.getRole().getRoleName(), user.getId());
     }
 

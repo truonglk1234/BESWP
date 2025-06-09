@@ -28,7 +28,7 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
         // SỬA: Tìm user bằng userPhone, vì đây là thông tin bạn lưu trong JWT token
-        User user = userRepository.findByUserPhone(userPhone)
+        User user = userRepository.findByPhone(userPhone)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với số điện thoại: " + userPhone));
 
         // KIỂM TRA: Đảm bảo tài khoản đã được kích hoạt
@@ -41,7 +41,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
         // Trả về một đối tượng UserDetails mà Spring Security có thể hiểu
         return new org.springframework.security.core.userdetails.User(
-                user.getUserPhone(), // Username (định danh chính)
+                user.getPhone(), // Username (định danh chính)
                 user.getPassword(),  // Mật khẩu đã mã hóa
                 authorities          // Danh sách các quyền
         );

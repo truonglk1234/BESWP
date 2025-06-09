@@ -31,12 +31,12 @@ public class AuthService {
 
     @Autowired
     public AuthService(UserRepository userRepository,
-                       RoleRepository roleRepository,
-                       UserStatusRepository userStatusRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil,
-                       VerificationTokenRepository tokenRepository,
-                       EmailService emailService) {
+            RoleRepository roleRepository,
+            UserStatusRepository userStatusRepository,
+            PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil,
+            VerificationTokenRepository tokenRepository,
+            EmailService emailService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userStatusRepository = userStatusRepository;
@@ -49,7 +49,6 @@ public class AuthService {
     private String generateVerificationCode() {
         return String.format("%06d", new java.util.Random().nextInt(999999));
     }
-
 
     @Transactional
     public User registerUser(RegisterDto registerDto) {
@@ -65,9 +64,11 @@ public class AuthService {
         }
 
         Role userRole = roleRepository.findByRoleName(DEFAULT_ROLE_NAME)
-                .orElseThrow(() -> new RuntimeException("Lỗi: Vai trò mặc định '" + DEFAULT_ROLE_NAME + "' không tìm thấy."));
+                .orElseThrow(() -> new RuntimeException(
+                        "Lỗi: Vai trò mặc định '" + DEFAULT_ROLE_NAME + "' không tìm thấy."));
         UserStatus userStatus = userStatusRepository.findByStatusName(DEFAULT_STATUS_NAME)
-                .orElseThrow(() -> new RuntimeException("Lỗi: Trạng thái người dùng '" + DEFAULT_STATUS_NAME + "' không tìm thấy."));
+                .orElseThrow(() -> new RuntimeException(
+                        "Lỗi: Trạng thái người dùng '" + DEFAULT_STATUS_NAME + "' không tìm thấy."));
 
         User user = new User();
         user.setUserPhone(registerDto.getPhone());
@@ -144,22 +145,21 @@ public class AuthService {
         tokenRepository.delete(verificationToken);
     }
 
-
     @Transactional
-    public void  resendVerificationCode(String email){
+    public void resendVerificationCode(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản nào với email này."));
-        if(user.isEnabled()){
+        if (user.isEnabled()) {
             throw new RuntimeException("Tài khoản này đã được kích hoạt");
         }
 
         VerificationToken verificationToken = tokenRepository.findByUser(user);
-        if(verificationToken == null){
+        if (verificationToken == null) {
             String newCodeForNewToken = generateVerificationCode();
             VerificationToken newToken = new VerificationToken(newCodeForNewToken, user);
             tokenRepository.save(newToken);
 
-            emailService.sendVerificationEmail(user.getEmail(),"Mã xác thực tài khoản STI Health", newCodeForNewToken);
+            emailService.sendVerificationEmail(user.getEmail(), "Mã xác thực tài khoản STI Health", newCodeForNewToken);
 
             return;
         }
@@ -171,7 +171,7 @@ public class AuthService {
         tokenRepository.save(verificationToken);
 
         String subject = "Mã xác thực tài khoản STI Health (Gửi lại)";
-        emailService.sendVerificationEmail(user.getEmail(),subject,newCde);
+        emailService.sendVerificationEmail(user.getEmail(), subject, newCde);
     }
 
     @Transactional
@@ -214,7 +214,8 @@ public class AuthService {
 
         // 3. Tìm token của user đó và xác thực
         VerificationToken token = tokenRepository.findByUser(user);
-        if (token == null || !token.getToken().equals(request.getCode()) || token.getExpiryDate().before(new java.util.Date())) {
+        if (token == null || !token.getToken().equals(request.getCode())
+                || token.getExpiryDate().before(new java.util.Date())) {
             throw new RuntimeException("Mã xác thực không hợp lệ hoặc đã hết hạn.");
         }
 
@@ -224,5 +225,12 @@ public class AuthService {
 
         // 5. Xóa token sau khi đã sử dụng thành công
         tokenRepository.delete(token);
+    }
+
+    public void logout(String token) {
+        if (token == null || token.isEmpty()) {
+            throw new RuntimeException("Token không hợp lệ");
+        }
+        jwtUtil.invalidateToken(token);
     }
 }

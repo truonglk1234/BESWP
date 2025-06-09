@@ -5,6 +5,8 @@ import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
 
+import com.group1.project.swp_project.service.TokenBlacklistService;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,6 +18,11 @@ public class JwtUtil {
     private final long jwtExpirationMs = 86400000; // 24 hours in milliseconds
     private final String SECRET_KEY = "my_secret_key_12345678901234567890123456789012";
     private SecretKey key;
+    private final TokenBlacklistService tokenBlacklistService;
+
+    public JwtUtil(TokenBlacklistService tokenBlacklistService) {
+        this.tokenBlacklistService = tokenBlacklistService;
+    }
 
     @PostConstruct
     public void init() {
@@ -33,10 +40,16 @@ public class JwtUtil {
     }
 
     public String extractUserPhone(String token) {
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            throw new RuntimeException("Token has been invalidated");
+        }
         return getClaims(token).getSubject();
     }
 
     public String extractRole(String token) {
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            throw new RuntimeException("Token has been invalidated");
+        }
         return getClaims(token).get("role", String.class);
     }
 
@@ -46,5 +59,9 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public void invalidateToken(String token) {
+        tokenBlacklistService.blacklistToken(token);
     }
 }

@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class AuthService {
 
@@ -112,7 +114,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không đúng");
         }
-        String token = jwtUtil.generateToken(user.getPhone(), user.getRole().getRoleName());
+        String token = jwtUtil.generateToken(user.getPhone(), List.of(user.getRole().getRoleName()));
         return new LoginResponse(token, user.getRole().getRoleName(), user.getId());
     }
 

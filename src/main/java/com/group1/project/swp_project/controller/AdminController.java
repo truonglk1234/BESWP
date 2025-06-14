@@ -15,7 +15,7 @@ import java.util.List;
 @Tag(name = "2. Management (Admin)", description = "APIs for Admin to manage user accounts")
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('Admin')")
 public class AdminController {
     @Autowired
     private UserManagementService userManagementService;

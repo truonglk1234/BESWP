@@ -18,14 +18,15 @@ public class OpenApiConfig {
         final String securitySchemeName = "Bearer Authentication";
 
         return new OpenAPI()
-                .info(new Info().title("STI Health API").version("1.0").description("API documentation for the STI Health application"))
+                .info(new Info().title("STI Health API").version("1.0").description("..."))
 
-                // Đảm bảo danh sách này khớp 100% với tên trong @Tag
+                // --- CẬP NHẬT DANH SÁCH NÀY ---
                 .tags(List.of(
                         new Tag().name("1. Authentication").description("APIs for User Registration, Login, and Verification"),
                         new Tag().name("2. Management (Admin)").description("APIs for Admin to manage user accounts"),
-                        new Tag().name("3. Management (Manager)").description("APIs for Manager to manage user accounts")
-                        // Bạn có thể thêm các tag khác ở đây
+                        new Tag().name("3. Management (Manager)").description("APIs for Manager and Admin to manage user accounts"),
+                        new Tag().name("4. Blog (Công khai)").description("Các API để xem bài viết"),
+                        new Tag().name("5. Quản lý Blog").description("Các API để tạo và quản lý bài viết")
                 ))
 
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))

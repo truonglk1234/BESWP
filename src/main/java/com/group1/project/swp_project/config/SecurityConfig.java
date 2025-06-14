@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -24,7 +25,8 @@ public class SecurityConfig {
 
     // Danh sách các đường dẫn không cần xác thực (public)
     private static final String[] PUBLIC_WHITELIST = {
-            "/api/auth/**", // Cho phép tất cả các API trong /api/auth (register, login, verify)
+            "/api/auth/**",
+            "/api/blogs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -38,7 +40,9 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+
+        // Mật khẩu sẽ được so sánh dưới dạng văn bản thuần.
+        return NoOpPasswordEncoder.getInstance();
     }
 
 

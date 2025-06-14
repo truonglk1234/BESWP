@@ -1,6 +1,8 @@
 package com.group1.project.swp_project.security;
 
 import java.util.Date;
+import java.util.List;
+
 import javax.crypto.SecretKey;
 
 import org.springframework.stereotype.Component;
@@ -15,7 +17,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtil {
-    private final long jwtExpirationMs = 86400000; // 24 hours in milliseconds
+    private final long jwtExpirationMs = 86400000;
     private final String SECRET_KEY = "my_secret_key_12345678901234567890123456789012";
     private SecretKey key;
     private final TokenBlacklistService tokenBlacklistService;
@@ -29,10 +31,11 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(String userPhone, String role) {
+    // ✅ Tạo token chứa authorities (danh sách quyền)
+    public String generateToken(String userPhone, List<String> authorities) {
         return Jwts.builder()
                 .setSubject(userPhone)
-                .claim("role", role)
+                .claim("authorities", authorities)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -40,17 +43,14 @@ public class JwtUtil {
     }
 
     public String extractUserPhone(String token) {
-        if (tokenBlacklistService.isBlacklisted(token)) {
-            throw new RuntimeException("Token has been invalidated");
-        }
+        checkBlacklisted(token);
         return getClaims(token).getSubject();
     }
 
-    public String extractRole(String token) {
-        if (tokenBlacklistService.isBlacklisted(token)) {
-            throw new RuntimeException("Token has been invalidated");
-        }
-        return getClaims(token).get("role", String.class);
+    // ✅ Trích xuất authorities
+    public List<String> extractAuthorities(String token) {
+        checkBlacklisted(token);
+        return getClaims(token).get("authorities", List.class);
     }
 
     private Claims getClaims(String token) {
@@ -59,6 +59,12 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    private void checkBlacklisted(String token) {
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            throw new RuntimeException("Token has been invalidated");
+        }
     }
 
     public void invalidateToken(String token) {

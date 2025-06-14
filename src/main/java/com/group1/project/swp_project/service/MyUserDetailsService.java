@@ -27,23 +27,20 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
-        // SỬA: Tìm user bằng userPhone, vì đây là thông tin bạn lưu trong JWT token
         User user = userRepository.findByPhone(userPhone)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với số điện thoại: " + userPhone));
+                .orElseThrow(() -> new UsernameNotFoundException("..."));
 
-        // KIỂM TRA: Đảm bảo tài khoản đã được kích hoạt
-        if (!user.isEnabled()) {
-            throw new DisabledException("Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email của bạn.");
-        }
+        // Lấy tên vai trò từ DB (ví dụ: "Admin", "Manager"...)
+        String roleName = user.getRole().getRoleName();
 
-        // SỬA: Tạo danh sách quyền (authorities) từ Role của user
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getRoleName()));
+        // Tạo một GrantedAuthority từ tên vai trò đó
+        GrantedAuthority authority = new SimpleGrantedAuthority(roleName);
 
-        // Trả về một đối tượng UserDetails mà Spring Security có thể hiểu
+        // Trả về UserDetails với quyền này
         return new org.springframework.security.core.userdetails.User(
-                user.getPhone(), // Username (định danh chính)
-                user.getPassword(),  // Mật khẩu đã mã hóa
-                authorities          // Danh sách các quyền
+                user.getPhone(),
+                user.getPassword(),
+                Collections.singletonList(authority) // Đảm bảo quyền được đưa vào đây
         );
     }
 }

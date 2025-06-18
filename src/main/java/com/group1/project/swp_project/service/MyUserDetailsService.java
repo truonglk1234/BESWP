@@ -1,6 +1,6 @@
 package com.group1.project.swp_project.service; // Đảm bảo package đúng
 
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,7 +27,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String userPhone) throws UsernameNotFoundException {
-        User user = userRepository.findByPhone(userPhone)
+        Users user = userRepository.findByPhone(userPhone)
                 .orElseThrow(() -> new UsernameNotFoundException("..."));
 
         // Lấy tên vai trò từ DB (ví dụ: "Admin", "Manager"...)

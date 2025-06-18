@@ -2,7 +2,7 @@ package com.group1.project.swp_project.service;
 
 import com.group1.project.swp_project.dto.UpdateProfileRequest;
 import com.group1.project.swp_project.dto.UserSummary;
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class UserManagementService {
 
     public List<UserSummary> getUsersByRole(String roleName) {
         // Chỉ cần MỘT lần truy vấn database
-        List<User> users = userRepository.findAllByRoleName(roleName);
+        List<Users> users = userRepository.findAllByRoleName(roleName);
 
         return users.stream()
                 .map(UserSummary::fromEntity)
@@ -30,15 +30,15 @@ public class UserManagementService {
     }
 
     public UserSummary updateUser(UserSummary userSummary) {
-        Optional<User> optional = userRepository.findById(userSummary.getId());
+        Optional<Users> optional = userRepository.findById(userSummary.getId());
         if (optional.isPresent()) {
-            User user = optional.get();
+            Users user = optional.get();
             user.setEmail(userSummary.getEmail());
             user.setPhone(userSummary.getPhone());
             if (user.getProfile() != null) {
                 user.getProfile().setFullName(userSummary.getName());
             }
-            User updatedUser = userRepository.save(user);
+            Users updatedUser = userRepository.save(user);
             return UserSummary.fromEntity(updatedUser);
         }
         throw new RuntimeException("User not found with id: " + userSummary.getId());
@@ -46,7 +46,7 @@ public class UserManagementService {
 
     @Transactional
     public UserSummary updateProfile(int Id, UpdateProfileRequest request) {
-        User user = userRepository.findById(Id)
+        Users user = userRepository.findById(Id)
                 .orElseThrow(() -> new RuntimeException("User not found id: " + Id));
         // check email and phone if have change
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
@@ -82,12 +82,12 @@ public class UserManagementService {
         if (request.getAvatarUrl() != null) {
             user.getProfile().setAvatarUrl(request.getAvatarUrl());
         }
-        User updatedUser = userRepository.save(user);
+        Users updatedUser = userRepository.save(user);
         return UserSummary.fromEntity(updatedUser);
     }
 
     public UserSummary deleteUser(int Id) {
-        Optional<User> user = userRepository.findById(Id);
+        Optional<Users> user = userRepository.findById(Id);
         if (user.isPresent()) {
             UserSummary deletedUser = UserSummary.fromEntity(user.get());
             userRepository.deleteById(Id);

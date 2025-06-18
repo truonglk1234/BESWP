@@ -2,8 +2,6 @@ package com.group1.project.swp_project.entity;
 
 import jakarta.persistence.*;
 
-
-import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -18,19 +16,17 @@ public class VerificationToken {
 
     private String token;
 
-
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = Users.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
-    private User user;
+    private Users user;
 
     private Date expiryDate;
-
 
     public VerificationToken() {
         super();
     }
 
-    public VerificationToken(final String token, final User user) {
+    public VerificationToken(final String token, final Users user) {
         super();
         this.token = token;
         this.user = user;
@@ -43,8 +39,6 @@ public class VerificationToken {
         cal.add(Calendar.MINUTE, expiryTimeInMinutes);
         return new Date(cal.getTime().getTime());
     }
-
-
 
     public Long getId() {
         return id;
@@ -62,11 +56,11 @@ public class VerificationToken {
         this.token = token;
     }
 
-    public User getUser() {
+    public Users getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(Users user) {
         this.user = user;
     }
 
@@ -77,7 +71,6 @@ public class VerificationToken {
     public void setExpiryDate(Date expiryDate) {
         this.expiryDate = expiryDate;
     }
-
 
     public void resetExpiryDate() {
         this.expiryDate = calculateExpiryDate(EXPIRATION);

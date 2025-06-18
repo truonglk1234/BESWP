@@ -4,7 +4,7 @@ import com.group1.project.swp_project.dto.BlogDetail;
 import com.group1.project.swp_project.dto.BlogSummary;
 import com.group1.project.swp_project.dto.CreateBlogRequest;
 import com.group1.project.swp_project.entity.Blog;
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.BlogRepository;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class BlogService {
     @Autowired
     private UserRepository userRepository;
 
-    //Lấy tất cả bài viết dạng tóm tắt
+    // Lấy tất cả bài viết dạng tóm tắt
 
     public List<BlogSummary> getAllBlogSummaries() {
         return blogRepository.findAll().stream()
@@ -30,21 +30,19 @@ public class BlogService {
                 .collect(Collectors.toList());
     }
 
-    //Lấy chi tiết bài viét
+    // Lấy chi tiết bài viét
 
     public BlogDetail getBlogById(int id) {
         Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Bài viết" +
                 "không tồn tại."));
-        return  convertToDetailDto(blog);
+        return convertToDetailDto(blog);
     }
 
-
-    //Tạo bài viết mới
+    // Tạo bài viết mới
     @Transactional
-    public Blog createBlog(CreateBlogRequest request, String creatorEmail){
-        User creator = userRepository.findByEmail(creatorEmail).orElseThrow(()
-                -> new RuntimeException("<Người dùng không hợp lệ."));
-
+    public Blog createBlog(CreateBlogRequest request, String creatorEmail) {
+        Users creator = userRepository.findByEmail(creatorEmail)
+                .orElseThrow(() -> new RuntimeException("<Người dùng không hợp lệ."));
 
         Blog newBlog = Blog.builder()
                 .title(request.getTitle())
@@ -56,27 +54,26 @@ public class BlogService {
         return blogRepository.save(newBlog);
     }
 
-    //Xóa bài viết
-    public void deleteBlog(int id){
-        if(!blogRepository.existsById(id)){
-            throw  new RuntimeException("Bài viết không tồn tại!");
+    // Xóa bài viết
+    public void deleteBlog(int id) {
+        if (!blogRepository.existsById(id)) {
+            throw new RuntimeException("Bài viết không tồn tại!");
 
         }
         blogRepository.deleteById(id);
     }
 
-
-    //Cập nhật vài viết
-    public Blog updateBlog(int id, CreateBlogRequest request){
-        Blog existingBlog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
+    // Cập nhật vài viết
+    public Blog updateBlog(int id, CreateBlogRequest request) {
+        Blog existingBlog = blogRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
         existingBlog.setTitle(request.getTitle());
         existingBlog.setContent(request.getContent());
         existingBlog.setImageUrl(request.getImageUrl());
         return blogRepository.save(existingBlog);
     }
 
-
-    private BlogSummary convertToSummaryDto(Blog blog){
+    private BlogSummary convertToSummaryDto(Blog blog) {
         String authorName = (blog.getCreatedBy() != null && blog.getCreatedBy().getProfile() != null)
                 ? blog.getCreatedBy().getProfile().getFullName()
                 : "N/A";
@@ -89,6 +86,7 @@ public class BlogService {
                 .authorName(authorName)
                 .build();
     }
+
     private BlogDetail convertToDetailDto(Blog blog) {
         // Lấy tên tác giả, xử lý trường hợp tác giả có thể null
         String authorName = (blog.getCreatedBy() != null && blog.getCreatedBy().getProfile() != null)
@@ -115,7 +113,6 @@ public class BlogService {
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }
-
 
     // Duyệt một bài viết
     @Transactional

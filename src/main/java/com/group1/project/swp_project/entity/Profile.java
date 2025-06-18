@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,12 +18,12 @@ public class Profile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="profile_id")
+    @Column(name = "profile_id")
     private int id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @Column(name = "full_name", length = 100)
     private String fullName;
@@ -32,7 +31,7 @@ public class Profile {
     @Column(name = "gender")
     private Boolean gender;
 
-    @Column(name="date_of_birth")
+    @Column(name = "date_of_birth")
     private LocalDate dataOfBirthday;
 
     @Lob

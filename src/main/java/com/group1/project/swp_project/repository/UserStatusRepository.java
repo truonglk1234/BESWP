@@ -1,6 +1,6 @@
 package com.group1.project.swp_project.repository;
 
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.entity.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +13,8 @@ import java.util.Optional;
 @Repository
 public interface UserStatusRepository extends JpaRepository<UserStatus, Integer> {
     Optional<UserStatus> findByStatusName(String statusName);
-    @Query("SELECT u FROM User u JOIN u.role r WHERE r.roleName = :roleName")
-    List<User> findByRole(@Param("roleName") String roleName);
+
+    @Query("SELECT u FROM Users u JOIN u.role r WHERE r.roleName = :roleName")
+    List<Users> findByRole(@Param("roleName") String roleName);
 
 }

@@ -33,9 +33,7 @@ public class Blog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
-    private User createdBy;
-
-
+    private Users createdBy;
 
     @Column(name = "status", nullable = false)
     private String status;

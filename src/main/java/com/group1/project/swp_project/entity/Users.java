@@ -8,22 +8,20 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="[User]")
+@Table(name = "Users")
 
+public class Users {
 
-public class User {
-
-    //Đánh dấu trường id là khóa chính (primary key) của thực thể (entity).
+    // Đánh dấu trường id là khóa chính (primary key) của thực thể (entity).
     @Id
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //Ánh xạ thuộc tính id với cột user_id) trong bảng cơ sở dữ liệu.
+    // Ánh xạ thuộc tính id với cột user_id) trong bảng cơ sở dữ liệu.
     @Column(name = "user_id")
     private int id;
 
@@ -36,7 +34,6 @@ public class User {
     @Column(name = "email", length = 100)
     private String email;
 
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;
@@ -44,7 +41,6 @@ public class User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "status_id")
     private UserStatus status;
-
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

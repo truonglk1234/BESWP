@@ -1,7 +1,7 @@
 package com.group1.project.swp_project.repository;
 
 import com.group1.project.swp_project.entity.Role;
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,14 +11,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
-    Optional<User> findByPhone(String phone);
+public interface UserRepository extends JpaRepository<Users, Integer> {
+    Optional<Users> findByPhone(String phone);
+
     boolean existsByPhone(String phone);
+
     Boolean existsByEmail(String email);
-    Optional<User> findByEmail(String email);
 
-    List<User> findAllByRole(Role role);
+    Optional<Users> findByEmail(String email);
 
-    @Query("SELECT u FROM User u JOIN u.role r WHERE r.roleName = :roleName")
-    List<User> findAllByRoleName(@Param("roleName") String roleName);
+    List<Users> findAllByRole(Role role);
+
+    @Query("SELECT u FROM Users u JOIN u.role r WHERE r.roleName = :roleName")
+    List<Users> findAllByRoleName(@Param("roleName") String roleName);
 }

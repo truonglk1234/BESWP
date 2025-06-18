@@ -53,7 +53,7 @@ public class AuthService {
     }
 
     @Transactional
-    public User registerUser(RegisterDto registerDto) {
+    public Users registerUser(RegisterDto registerDto) {
         // ... (logic kiểm tra và tạo user giữ nguyên) ...
         if (registerDto.getPassword() == null || !registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
             throw new RuntimeException("Lỗi: Mật khẩu và xác nhận mật khẩu không khớp!");
@@ -72,7 +72,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException(
                         "Lỗi: Trạng thái người dùng '" + DEFAULT_STATUS_NAME + "' không tìm thấy."));
 
-        User user = new User();
+        Users user = new Users();
         user.setPhone(registerDto.getPhone());
         user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         user.setEmail(registerDto.getEmail());
@@ -87,7 +87,7 @@ public class AuthService {
         profile.setUser(user);
         user.setProfile(profile);
 
-        User savedUser = userRepository.save(user);
+        Users savedUser = userRepository.save(user);
 
         String code = generateVerificationCode();
         VerificationToken verificationToken = new VerificationToken(code, savedUser);
@@ -106,7 +106,7 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         // ... (giữ nguyên) ...
-        User user = userRepository.findByEmail(request.getEmail())
+        Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
         if (!user.isEnabled()) {
             throw new DisabledException("Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email của bạn.");
@@ -122,7 +122,7 @@ public class AuthService {
     @Transactional
     public void verifyCode(VerificationRequest request) {
         // ... (giữ nguyên) ...
-        User user = userRepository.findByEmail(request.getEmail())
+        Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email này."));
 
         VerificationToken verificationToken = tokenRepository.findByUser(user);
@@ -150,7 +150,7 @@ public class AuthService {
 
     @Transactional
     public void resendVerificationCode(String email) {
-        User user = userRepository.findByEmail(email)
+        Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản nào với email này."));
         if (user.isEnabled()) {
             throw new RuntimeException("Tài khoản này đã được kích hoạt");
@@ -180,7 +180,7 @@ public class AuthService {
     @Transactional
     public void requestPasswordResetCode(String email) {
         // 1. Tìm user bằng email
-        User user = userRepository.findByEmail(email)
+        Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
         // 2. Tạo mã mới
@@ -212,7 +212,7 @@ public class AuthService {
         }
 
         // 2. Tìm user bằng email
-        User user = userRepository.findByEmail(request.getEmail())
+        Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
         // 3. Tìm token của user đó và xác thực

@@ -1,7 +1,6 @@
 package com.group1.project.swp_project.dto;
 
-
-import com.group1.project.swp_project.entity.User;
+import com.group1.project.swp_project.entity.Users;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,14 +13,13 @@ public class UserSummary {
     private String phone;
     private String rollName;
 
-
-    public static UserSummary fromEntity(User user){
+    public static UserSummary fromEntity(Users user) {
         return UserSummary.builder()
                 .id(user.getId())
-                .name(user.getProfile()!=null ? user.getProfile().getFullName():"Chưa có Profile")
+                .name(user.getProfile() != null ? user.getProfile().getFullName() : "Chưa có Profile")
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .rollName(user.getRole()!= null ? user.getRole().getRoleName():"Chưa có Role")
+                .rollName(user.getRole() != null ? user.getRole().getRoleName() : "Chưa có Role")
                 .build();
     }
 

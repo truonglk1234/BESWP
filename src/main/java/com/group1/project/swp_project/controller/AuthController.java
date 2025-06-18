@@ -10,7 +10,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +20,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
 
-    @Autowired
     public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
-        this.jwtUtil = jwtUtil;
+
     }
 
     @Operation(summary = "Register a new user", description = "Creates a new user account and sends a verification code to the email.")

@@ -42,40 +42,40 @@ public class ManagerController {
         return ResponseEntity.ok(userManagementService.getUsersByRole("Customer"));
     }
 
-//    // API cập nhật thông tin Staff
-//    @PutMapping("/staff/{id}")
-//    public ResponseEntity<UserSummary> updateStaff(@PathVariable int id, @RequestBody UpdateProfileRequest request) {
-//        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
-//    }
-//
-//    // API cập nhật thông tin Consultant
-//    @PutMapping("/consultants/{id}")
-//    public ResponseEntity<UserSummary> updateConsultant(@PathVariable int id,
-//            @RequestBody UpdateProfileRequest request) {
-//        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
-//    }
-//
-//    // API cập nhật thông tin Customer
-//    @PutMapping("/customers/{id}")
-//    public ResponseEntity<UserSummary> updateCustomer(@PathVariable int id, @RequestBody UpdateProfileRequest request) {
-//        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
-//    }
-//
-//    // API xóa Staff
-//    @DeleteMapping("/staff/{id}")
-//    public ResponseEntity<UserSummary> deleteStaff(@PathVariable int id) {
-//        return ResponseEntity.ok(userManagementService.deleteUser(id));
-//    }
-//
-//    // API xóa Consultant
-//    @DeleteMapping("/consultants/{id}")
-//    public ResponseEntity<UserSummary> deleteConsultant(@PathVariable int id) {
-//        return ResponseEntity.ok(userManagementService.deleteUser(id));
-//    }
-//
-//    // API xóa Customer
-//    @DeleteMapping("/customers/{id}")
-//    public ResponseEntity<UserSummary> deleteCustomer(@PathVariable int id) {
-//        return ResponseEntity.ok(userManagementService.deleteUser(id));
-//    }
+    // API cập nhật thông tin Staff
+    @PutMapping("/staff/{id}")
+    public ResponseEntity<UserSummary> updateStaff(@PathVariable int id, @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
+    }
+
+    // API cập nhật thông tin Consultant
+    @PutMapping("/consultants/{id}")
+    public ResponseEntity<UserSummary> updateConsultant(@PathVariable int id,
+            @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
+    }
+
+    // API cập nhật thông tin Customer
+    @PutMapping("/customers/{id}")
+    public ResponseEntity<UserSummary> updateCustomer(@PathVariable int id, @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userManagementService.updateProfile(id, request));
+    }
+
+    // API xóa Staff
+    @DeleteMapping("/staff/{id}")
+    public ResponseEntity<UserSummary> deleteStaff(@PathVariable int id) {
+        return ResponseEntity.ok(userManagementService.deleteUser(id));
+    }
+
+    // API xóa Consultant
+    @DeleteMapping("/consultants/{id}")
+    public ResponseEntity<UserSummary> deleteConsultant(@PathVariable int id) {
+        return ResponseEntity.ok(userManagementService.deleteUser(id));
+    }
+
+    // API xóa Customer
+    @DeleteMapping("/customers/{id}")
+    public ResponseEntity<UserSummary> deleteCustomer(@PathVariable int id) {
+        return ResponseEntity.ok(userManagementService.deleteUser(id));
+    }
 }

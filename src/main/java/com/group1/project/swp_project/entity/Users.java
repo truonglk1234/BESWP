@@ -53,7 +53,7 @@ public class Users {
         createdAt = LocalDateTime.now();
     }
 
-    // Trong User.java
+
     @Column(name = "enabled")
     private Boolean enabled;
 

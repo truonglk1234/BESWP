@@ -4,6 +4,8 @@ import com.group1.project.swp_project.entity.Users;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 public class UserSummary {
@@ -12,6 +14,8 @@ public class UserSummary {
     private String email;
     private String phone;
     private String rollName;
+    private LocalDateTime createdAt;
+    private String verifiedStatus;
 
     public static UserSummary fromEntity(Users user) {
         return UserSummary.builder()
@@ -20,6 +24,11 @@ public class UserSummary {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .rollName(user.getRole() != null ? user.getRole().getRoleName() : "Chưa có Role")
+                .rollName(user.getRole()!= null ? user.getRole().getRoleName():"Chưa có Role")
+                .createdAt(user.getCreatedAt())
+                .verifiedStatus(user.getStatus() != null && user.getStatus().getId() == 1
+                ? "Đã xác thực"
+                : "Chưa xác thực")
                 .build();
     }
 

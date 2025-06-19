@@ -26,9 +26,7 @@ public class UserSummary {
                 .rollName(user.getRole() != null ? user.getRole().getRoleName() : "Chưa có Role")
                 .rollName(user.getRole()!= null ? user.getRole().getRoleName():"Chưa có Role")
                 .createdAt(user.getCreatedAt())
-                .verifiedStatus(user.getStatus() != null && user.getStatus().getId() == 1
-                ? "Đã xác thực"
-                : "Chưa xác thực")
+                .verifiedStatus(user.getStatus() != null && user.getStatus().getId() == 1  ? "Đã xác thực" : "Chưa xác thực")
                 .build();
     }
 

@@ -2,6 +2,9 @@ package com.group1.project.swp_project.service;
 
 // Các import cần thiết (SimpleMailMessage đã được xóa)
 import com.group1.project.swp_project.dto.*;
+import com.group1.project.swp_project.dto.req.LoginRequest;
+import com.group1.project.swp_project.dto.req.ResetPasswordWithCodeRequest;
+import com.group1.project.swp_project.dto.res.LoginResponse;
 import com.group1.project.swp_project.entity.*;
 import com.group1.project.swp_project.repository.RoleRepository;
 import com.group1.project.swp_project.repository.UserRepository;

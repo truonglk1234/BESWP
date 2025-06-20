@@ -1,4 +1,4 @@
-package com.group1.project.swp_project.dto;
+package com.group1.project.swp_project.dto.req;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

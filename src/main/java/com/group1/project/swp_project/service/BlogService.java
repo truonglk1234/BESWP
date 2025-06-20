@@ -2,7 +2,7 @@ package com.group1.project.swp_project.service;
 
 import com.group1.project.swp_project.dto.BlogDetail;
 import com.group1.project.swp_project.dto.BlogSummary;
-import com.group1.project.swp_project.dto.CreateBlogRequest;
+import com.group1.project.swp_project.dto.req.CreateBlogRequest;
 import com.group1.project.swp_project.entity.Blog;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.BlogRepository;

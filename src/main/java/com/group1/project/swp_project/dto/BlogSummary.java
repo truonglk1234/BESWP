@@ -11,8 +11,9 @@ import java.time.LocalDateTime;
 public class BlogSummary {
     private int id;
     private String title;
-    private String imageUrl;
     private LocalDateTime createdAt;
     private String authorName;
+    private String topicName;
+    private String status;
 
 }

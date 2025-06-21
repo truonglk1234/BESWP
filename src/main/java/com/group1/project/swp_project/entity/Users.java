@@ -17,11 +17,9 @@ import java.time.LocalDateTime;
 
 public class Users {
 
-    // Đánh dấu trường id là khóa chính (primary key) của thực thể (entity).
-    @Id
 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // Ánh xạ thuộc tính id với cột user_id) trong bảng cơ sở dữ liệu.
     @Column(name = "user_id")
     private int id;
 

@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // bật CORS cho API
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/**",
+                                "/api/blogs/**",
                                 "/api/auth/login",
                                 "/api/auth/register",
                                 "/api/auth/**")

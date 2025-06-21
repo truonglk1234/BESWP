@@ -2,15 +2,18 @@ package com.group1.project.swp_project.service;
 
 import com.group1.project.swp_project.dto.BlogDetail;
 import com.group1.project.swp_project.dto.BlogSummary;
-import com.group1.project.swp_project.dto.CreateBlogRequest;
+import com.group1.project.swp_project.dto.req.CreateBlogRequest;
 import com.group1.project.swp_project.entity.Blog;
+import com.group1.project.swp_project.entity.Topic;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.BlogRepository;
+import com.group1.project.swp_project.repository.TopicRepository;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,9 @@ public class BlogService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TopicRepository topicRepository;
 
     // Lấy tất cả bài viết dạng tóm tắt
 
@@ -42,13 +48,18 @@ public class BlogService {
     @Transactional
     public Blog createBlog(CreateBlogRequest request, String creatorEmail) {
         Users creator = userRepository.findByEmail(creatorEmail)
-                .orElseThrow(() -> new RuntimeException("<Người dùng không hợp lệ."));
+                .orElseThrow(() -> new RuntimeException("Người dùng không hợp lệ."));
+
+        Topic topic = topicRepository.findById(request.getTopicId())
+                .orElseThrow(() -> new RuntimeException("Chủ đề không tồn tại."));
 
         Blog newBlog = Blog.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
-                .imageUrl(request.getImageUrl())
+                .createdAt(LocalDateTime.now())
                 .createdBy(creator)
+                .topic(topic)
+                .status("Pending")
                 .build();
 
         return blogRepository.save(newBlog);
@@ -69,7 +80,6 @@ public class BlogService {
                 .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
         existingBlog.setTitle(request.getTitle());
         existingBlog.setContent(request.getContent());
-        existingBlog.setImageUrl(request.getImageUrl());
         return blogRepository.save(existingBlog);
     }
 
@@ -81,14 +91,15 @@ public class BlogService {
         return BlogSummary.builder()
                 .id(blog.getId())
                 .title(blog.getTitle())
-                .imageUrl(blog.getImageUrl())
                 .createdAt(blog.getCreatedAt())
                 .authorName(authorName)
+                .topicName(blog.getTopic() != null ? blog.getTopic().getName() : null)
+                .status(blog.getStatus())
                 .build();
     }
 
-    private BlogDetail convertToDetailDto(Blog blog) {
-        // Lấy tên tác giả, xử lý trường hợp tác giả có thể null
+
+    public BlogDetail convertToDetailDto(Blog blog) {
         String authorName = (blog.getCreatedBy() != null && blog.getCreatedBy().getProfile() != null)
                 ? blog.getCreatedBy().getProfile().getFullName()
                 : "N/A";
@@ -97,9 +108,10 @@ public class BlogService {
                 .id(blog.getId())
                 .title(blog.getTitle())
                 .content(blog.getContent())
-                .imageUrl(blog.getImageUrl())
                 .createdAt(blog.getCreatedAt())
                 .authorName(authorName)
+                .topicName(blog.getTopic() != null ? blog.getTopic().getName() : null)
+                .status(blog.getStatus())
                 .build();
     }
 
@@ -136,6 +148,37 @@ public class BlogService {
 
         // 2. Chuyển danh sách Entity sang danh sách DTO và trả về
         return pendingBlogs.stream()
+                .map(this::convertToSummaryDto)
+                .collect(Collectors.toList());
+    }
+
+
+    public List<BlogSummary>getAllBlogs(){
+        return blogRepository.findAll().stream().
+                map(this::convertToSummaryDto).
+                collect(Collectors.toList());
+    }
+
+    public BlogDetail getBlogByIdDetail(int id) {
+        return blogRepository.findById(id)
+                .map(this::convertToDetailDto)
+                .orElse(null);
+    }
+
+    public List<BlogSummary> filterBlogs(String status, Integer topicId) {
+        List<Blog> result;
+
+        if (status != null && topicId != null) {
+            result = blogRepository.findByStatusAndTopicId(status, topicId);
+        } else if (status != null) {
+            result = blogRepository.findByStatus(status);
+        } else if (topicId != null) {
+            result = blogRepository.findByTopicId(topicId);
+        } else {
+            result = blogRepository.findAll();
+        }
+
+        return result.stream()
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }

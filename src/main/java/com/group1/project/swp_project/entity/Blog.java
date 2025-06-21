@@ -19,14 +19,13 @@ public class Blog {
     @Column(name = "blog_id")
     private int id;
 
-    @Column(name = "title", length = 200)
+    @Column(name = "title", length = 200, columnDefinition = "NVARCHAR(200)")
     private String title;
 
-    @Column(name = "content", columnDefinition = "TEXT")
+    @Column(name = "content", columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -45,4 +44,8 @@ public class Blog {
             this.status = "Pending";
         }
     }
+
+    @ManyToOne
+    @JoinColumn(name = "topic_id")
+    private Topic topic;
 }

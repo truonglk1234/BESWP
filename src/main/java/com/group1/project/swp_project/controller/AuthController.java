@@ -1,6 +1,10 @@
 package com.group1.project.swp_project.controller;
 
 import com.group1.project.swp_project.dto.*;
+import com.group1.project.swp_project.dto.req.LoginRequest;
+import com.group1.project.swp_project.dto.req.ResendCodeRequest;
+import com.group1.project.swp_project.dto.req.ResetPasswordWithCodeRequest;
+import com.group1.project.swp_project.dto.res.LoginResponse;
 import com.group1.project.swp_project.service.AuthService;
 import com.group1.project.swp_project.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;

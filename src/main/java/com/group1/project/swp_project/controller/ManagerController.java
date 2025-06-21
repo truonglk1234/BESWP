@@ -1,7 +1,7 @@
 package com.group1.project.swp_project.controller;
 
-import com.group1.project.swp_project.dto.UpdateProfileRequest;
 import com.group1.project.swp_project.dto.UserSummary;
+import com.group1.project.swp_project.dto.req.UpdateProfileRequest;
 import com.group1.project.swp_project.service.UserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Tag(name = "3.Management (Manager)", description = "APIs for Manager to manage staff and consultants")
 @RestController
-@RequestMapping("/api/manger")
+@RequestMapping("/api/manager")
 @PreAuthorize("hasAuthority('Manager')")
 public class ManagerController {
 

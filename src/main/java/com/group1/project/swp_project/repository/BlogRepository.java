@@ -10,4 +10,7 @@ import java.util.List;
 @Repository
 public interface BlogRepository extends JpaRepository<Blog,Integer> {
     List<Blog> findByStatus(String status);
+    List<Blog> findByTopicId(Integer topicId);
+    List<Blog> findByStatusAndTopicId(String status, Integer topicId);
+
 }

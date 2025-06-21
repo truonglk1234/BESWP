@@ -13,7 +13,7 @@ import java.util.List;
 
 @Tag(name = "3.Management (Manager)", description = "APIs for Manager to manage staff and consultants")
 @RestController
-@RequestMapping("/api/manger")
+@RequestMapping("/api/manager")
 @PreAuthorize("hasAuthority('Manager')")
 public class ManagerController {
 

@@ -1,5 +1,6 @@
 package com.group1.project.swp_project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,9 +24,10 @@ public class Profile {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private Users user;
 
-    @Column(name = "full_name", length = 100)
+    @Column(name = "full_name", length = 100, columnDefinition = "NVARCHAR(100)")
     private String fullName;
 
     @Column(name = "gender")
@@ -35,7 +37,7 @@ public class Profile {
     private LocalDate dataOfBirthday;
 
     @Lob
-    @Column(name = "address")
+    @Column(name = "address", columnDefinition = "NVARCHAR(MAX)")
     private String address;
 
     @Column(name = "avatar_url", length = 255)

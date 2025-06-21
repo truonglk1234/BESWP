@@ -1,5 +1,6 @@
 package com.group1.project.swp_project.controller;
 
+import com.group1.project.swp_project.dto.BlogDetail;
 import com.group1.project.swp_project.dto.BlogSummary;
 import com.group1.project.swp_project.dto.BlogSummary;
 import com.group1.project.swp_project.dto.CreateBlogRequest;
@@ -33,7 +34,7 @@ public class BlogManagementController {
             description = "Tạo một bài viết mới với trạng thái 'Chờ duyệt'. Yêu cầu vai trò STAFF."
     )
     @PostMapping
-    @PreAuthorize("hasAuthority('STAFF')")
+    @PreAuthorize("hasAuthority('Staff')")
     public ResponseEntity<Blog> createBlog(@RequestBody @Valid CreateBlogRequest request, Authentication authentication) {
         String creatorEmail = authentication.getName();
         Blog createdBlog = blogService.createBlog(request, creatorEmail);
@@ -46,8 +47,7 @@ public class BlogManagementController {
             description = "Cập nhật tiêu đề, nội dung, hoặc hình ảnh của một bài viết. Yêu cầu vai trò ADMIN, MANAGER, hoặc STAFF."
     )
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
-
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Staff')")
     public ResponseEntity<Blog> updateBlog(@PathVariable int id, @RequestBody @Valid CreateBlogRequest request) {
         // Cần thêm logic kiểm tra xem người sửa có phải là người tạo bài không, hoặc là admin/manager
         return ResponseEntity.ok(blogService.updateBlog(id, request));
@@ -59,7 +59,7 @@ public class BlogManagementController {
             description = "Xóa vĩnh viễn một bài viết. Yêu cầu vai trò ADMIN, MANAGER, hoặc STAFF."
     )
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'STAFF')")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Staff')")
     public ResponseEntity<Void> deleteBlog(@PathVariable int id) {
         // Tương tự, cần kiểm tra quyền sở hữu trước khi xóa
         blogService.deleteBlog(id);
@@ -72,7 +72,7 @@ public class BlogManagementController {
             description = "Trả về danh sách các bài viết có trạng thái 'Chờ duyệt'. Yêu cầu vai trò ADMIN hoặc MANAGER."
     )
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAuthority('Manager')")
     public ResponseEntity<List<BlogSummary>> getPendingBlogs() {
         return ResponseEntity.ok(blogService.getPendingBlogs());
     }
@@ -83,19 +83,52 @@ public class BlogManagementController {
             description = "Thay đổi trạng thái của bài viết từ 'Chờ duyệt' sang 'Đã đăng'. Yêu cầu vai trò MANAGER."
     )
     @PutMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole( 'MANAGER')")
-    public ResponseEntity<Blog> approveBlog(@PathVariable int id) {
-        return ResponseEntity.ok(blogService.approveBlog(id));
+    @PreAuthorize("hasAuthority('Manager')")
+    public ResponseEntity<BlogDetail> approveBlog(@PathVariable int id) {
+        Blog approved = blogService.approveBlog(id);
+        return ResponseEntity.ok(blogService.convertToDetailDto(approved));
     }
+
 
     // API để từ chối một bài viết: Chỉ Manager
     @Operation(
             summary = "Từ chối một bài viết",
-            description = "Thay đổi trạng thái của bài viết từ 'Chờ duyệt' sang 'Bị từ chối'. Yêu cầu vai trò ADMIN hoặc MANAGER."
+            description = "Thay đổi trạng thái của bài viết từ 'Chờ duyệt' sang 'Bị từ chối'. Yêu cầu vai trò MANAGER."
     )
     @PutMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<Blog> rejectBlog(@PathVariable int id) {
-        return ResponseEntity.ok(blogService.rejectBlog(id));
+    @PreAuthorize("hasAuthority('Manager')")
+    public ResponseEntity<BlogDetail> rejectBlog(@PathVariable int id) {
+        Blog rejected = blogService.rejectBlog(id);
+        return ResponseEntity.ok(blogService.convertToDetailDto(rejected));
     }
+
+    @Operation(
+            summary = "Lấy tất cả bài viết",
+            description = "Trả về danh sách tất cả các bài viết, không phân biệt trạng thái. Yêu cầu vai trò ADMIN, MANAGER hoặc STAFF."
+    )
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('Manager')")
+    public ResponseEntity<List<BlogSummary>> getAllBlogs() {
+        return ResponseEntity.ok(blogService.getAllBlogs());
+    }
+
+
+    @Operation(
+            summary = "Xem chi tiết một bài viết bất kỳ",
+            description = "Xem chi tiết bài viết theo ID, không giới hạn trạng thái. Yêu cầu vai trò ADMIN, MANAGER hoặc STAFF."
+    )
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Staff')")
+    public ResponseEntity<BlogDetail> getBlogDetail(@PathVariable int id) {
+        return ResponseEntity.ok(blogService.getBlogById(id));
+    }
+
+    @GetMapping("/blogs")
+    public ResponseEntity<List<BlogSummary>> getBlogsWithFilter(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer topicId) {
+        List<BlogSummary> result = blogService.filterBlogs(status, topicId);
+        return ResponseEntity.ok(result);
+    }
+
 }

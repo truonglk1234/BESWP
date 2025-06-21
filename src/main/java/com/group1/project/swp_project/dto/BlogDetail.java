@@ -15,7 +15,8 @@ public class BlogDetail {
     private int id;
     private String title;
     private String content;
-    private String imageUrl;
     private LocalDateTime createdAt;
     private String authorName;
+    private String  topicName;
+    private String status;
 }

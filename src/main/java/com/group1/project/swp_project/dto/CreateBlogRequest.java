@@ -1,6 +1,7 @@
 package com.group1.project.swp_project.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -9,5 +10,7 @@ public class CreateBlogRequest {
     private String title;
     @NotBlank
     private String content;
-    private String imageUrl;
+
+    @NotNull(message = "Topic ID không được để trống")
+    private Integer topicId;
 }

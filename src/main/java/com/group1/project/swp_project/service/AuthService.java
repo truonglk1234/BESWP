@@ -117,7 +117,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không đúng");
         }
-        String token = jwtUtil.generateToken(user.getEmail(), List.of(user.getRole().getRoleName()),
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().getRoleName(),
                 user.getProfile().getFullName());
         return new LoginResponse(token, user.getRole().getRoleName(), user.getId());
     }

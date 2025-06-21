@@ -1,4 +1,6 @@
-package com.group1.project.swp_project.dto;
+package com.group1.project.swp_project.dto.req;
+
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -8,7 +10,7 @@ import lombok.Data;
 public class UpdateProfileRequest {
     private String fullName;
     private Boolean gender;
-    private String dateOfBirthday;
+    private LocalDate dateOfBirthday;
     private String address;
     private String avatarUrl;
 

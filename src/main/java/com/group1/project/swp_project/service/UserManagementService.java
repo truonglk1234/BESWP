@@ -1,7 +1,7 @@
 package com.group1.project.swp_project.service;
 
-import com.group1.project.swp_project.dto.UpdateProfileRequest;
 import com.group1.project.swp_project.dto.UserSummary;
+import com.group1.project.swp_project.dto.req.UpdateProfileRequest;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +72,7 @@ public class UserManagementService {
             user.getProfile().setGender(request.getGender());
         }
         if (request.getDateOfBirthday() != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate dateOfBirth = LocalDate.parse(request.getDateOfBirthday(), formatter);
-            user.getProfile().setDataOfBirthday(dateOfBirth);
+            user.getProfile().setDataOfBirthday(request.getDateOfBirthday());
         }
         if (request.getAddress() != null) {
             user.getProfile().setAddress(request.getAddress());

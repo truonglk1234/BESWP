@@ -32,11 +32,11 @@ public class JwtUtil {
     }
 
     // ✅ Tạo token chứa authorities (danh sách quyền)
-    public String generateToken(String email, List<String> authorities, String name) {
+    public String generateToken(String email, String role, String name) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("Name", name)
-                .claim("authorities", authorities)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)

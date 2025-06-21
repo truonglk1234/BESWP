@@ -44,6 +44,17 @@ FROM [dbo].[users] u
 WHERE u.userphone = '0123456789'
   AND NOT EXISTS (SELECT 1 FROM [dbo].[Profile] WHERE user_id = u.user_id);
 
+INSERT INTO [dbo].[users] (userphone, password, email, role_id, status_id)
+SELECT '9999999999', '123456789', 'consultant@example.com', 3, 1
+    WHERE NOT EXISTS (SELECT 1 FROM [dbo].[users] WHERE userphone = '9999999999');
+
+INSERT INTO [dbo].[Profile] (user_id, full_name, gender, date_of_birth, address)
+SELECT u.user_id, 'Consultant User', 1, '1991-01-01', '123 Admin Street'
+FROM [dbo].[users] u
+WHERE u.userphone = '9999999999'
+  AND NOT EXISTS (SELECT 1 FROM [dbo].[Profile] WHERE user_id = u.user_id);
+
+
 -- Customer user
 INSERT INTO [dbo].[users] (userphone, password, email, role_id, status_id)
 SELECT '0987654321', '123456789', 'customer@example.com', 2, 1

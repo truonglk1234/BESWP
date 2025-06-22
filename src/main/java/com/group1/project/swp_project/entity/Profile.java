@@ -34,7 +34,7 @@ public class Profile {
     private Boolean gender;
 
     @Column(name = "date_of_birth")
-    private LocalDate dataOfBirthday;
+    private LocalDate dateOfBirth;
 
     @Lob
     @Column(name = "address", columnDefinition = "NVARCHAR(MAX)")
@@ -42,4 +42,5 @@ public class Profile {
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
+
 }

@@ -13,7 +13,7 @@ import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.service.TestBookingService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/auth/user")
 public class TestController {
     private final TestBookingService testBookingService;
 

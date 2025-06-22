@@ -17,7 +17,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtil {
-    private final long jwtExpirationMs = 86400000;
+    private final long jwtExpirationMs = 864000; // 1 ngày
     private final String SECRET_KEY = "my_secret_key_12345678901234567890123456789012";
     private SecretKey key;
     private final TokenBlacklistService tokenBlacklistService;
@@ -31,10 +31,11 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    // ✅ Tạo token chứa authorities (danh sách quyền)
-    public String generateToken(String email, String role, String name) {
+    // ✅ Tạo token mới
+    public String generateToken(int userId, String email, String role, String name) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(email) // sub = email
+                .claim("userId", userId)
                 .claim("Name", name)
                 .claim("role", role)
                 .claim("authorities", List.of(role))
@@ -44,17 +45,24 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String extractUserPhone(String token) {
+    // ✅ Trích xuất email từ token (vì sub là email)
+    public String extractUserEmail(String token) {
         checkBlacklisted(token);
-        return getClaims(token).getSubject();
+        return getClaims(token).getSubject(); // subject = email
     }
 
-    // ✅ Trích xuất authorities
+    // ✅ Trích xuất quyền (role/authorities)
     public List<String> extractAuthorities(String token) {
         checkBlacklisted(token);
         return getClaims(token).get("authorities", List.class);
     }
 
+    public int extractUserId(String token) {
+        checkBlacklisted(token);
+        return getClaims(token).get("userId", Integer.class);
+    }
+
+    // ✅ Trích xuất tất cả claims
     private Claims getClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -63,12 +71,14 @@ public class JwtUtil {
                 .getBody();
     }
 
+    // ✅ Kiểm tra token có bị vô hiệu hóa không
     private void checkBlacklisted(String token) {
         if (tokenBlacklistService.isBlacklisted(token)) {
             throw new RuntimeException("Token has been invalidated");
         }
     }
 
+    // ✅ Vô hiệu hóa token
     public void invalidateToken(String token) {
         tokenBlacklistService.blacklistToken(token);
     }

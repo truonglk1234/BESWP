@@ -72,7 +72,7 @@ public class UserManagementService {
             user.getProfile().setGender(request.getGender());
         }
         if (request.getDateOfBirthday() != null) {
-            user.getProfile().setDataOfBirthday(request.getDateOfBirthday());
+            user.getProfile().setDateOfBirth(request.getDateOfBirthday());
         }
         if (request.getAddress() != null) {
             user.getProfile().setAddress(request.getAddress());

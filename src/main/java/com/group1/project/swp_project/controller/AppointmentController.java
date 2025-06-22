@@ -14,7 +14,7 @@ import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.service.AppointmentService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/auth/user")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;

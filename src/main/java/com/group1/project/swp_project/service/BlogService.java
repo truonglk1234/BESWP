@@ -182,4 +182,35 @@ public class BlogService {
                 .map(this::convertToSummaryDto)
                 .collect(Collectors.toList());
     }
+
+
+
+
+    public List<BlogSummary> getBlogsByStaffEmail(String email) {
+        List<Blog> blogs = blogRepository.findByCreatedByEmail((email));
+        return blogs.stream().map(this::convertToSummaryDto).collect(Collectors.toList());
+    }
+
+
+
+    @Transactional
+    public Blog updateBlogOfStaff(int blogId, CreateBlogRequest request, String staffEmail) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));
+        // Kiểm tra quyền sở hữu: chỉ người tạo mới được sửa
+        if (!blog.getCreatedBy().getEmail().equals(staffEmail)) {
+            throw new RuntimeException("Bạn không có quyền sửa bài viết này.");
+        }
+        blog.setTitle(request.getTitle());
+        blog.setContent(request.getContent());
+        // Cập nhật chủ đề nếu có
+        if (request.getTopicId() != null) {
+            Topic topic = topicRepository.findById(request.getTopicId())
+                    .orElseThrow(() -> new RuntimeException("Chủ đề không tồn tại"));
+            blog.setTopic(topic);
+        }
+        // Đặt lại trạng thái là "Pending" sau khi sửa (nếu bạn muốn duyệt lại)
+        blog.setStatus("Pending");
+        return blogRepository.save(blog);
+    }
 }

@@ -13,4 +13,5 @@ public interface BlogRepository extends JpaRepository<Blog,Integer> {
     List<Blog> findByTopicId(Integer topicId);
     List<Blog> findByStatusAndTopicId(String status, Integer topicId);
 
+    List<Blog> findByCreatedByEmail(String createdByEmail);
 }

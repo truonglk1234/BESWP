@@ -1,70 +1,82 @@
-// package com.group1.project.swp_project.service;
+package com.group1.project.swp_project.service;
 
-// import org.springframework.stereotype.Service;
+import com.group1.project.swp_project.dto.UserProfileDto;
+import com.group1.project.swp_project.dto.req.UpdateProfileDto;
+import com.group1.project.swp_project.entity.Profile;
+import com.group1.project.swp_project.entity.Users;
+import com.group1.project.swp_project.repository.ProfileRepository;
+import com.group1.project.swp_project.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-// import com.group1.project.swp_project.dto.req.UpdateProfileRequest;
-// import com.group1.project.swp_project.entity.Profile;
-// import com.group1.project.swp_project.entity.Users;
-// import com.group1.project.swp_project.repository.ProfileRepository;
-// import com.group1.project.swp_project.repository.UserRepository;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.UUID;
 
-// @Service
-// public class ProfileService {
+@Service
+public class ProfileService {
+    private final ProfileRepository profileRepository;
+    private final UserRepository userRepository;
 
-// private final UserRepository userRepository;
-// private final ProfileRepository profileRepository;
+    public ProfileService(ProfileRepository profileRepository, UserRepository userRepository) {
+        this.profileRepository = profileRepository;
+        this.userRepository = userRepository;
+    }
 
-// public ProfileService(UserRepository userRepository, ProfileRepository
-// profileRepository) {
-// this.userRepository = userRepository;
-// this.profileRepository = profileRepository;
-// }
+    public UserProfileDto getUserProfile(Users user) {
+        Profile profile = profileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ người dùng"));
 
-// /**
-// * Lấy thông tin hồ sơ của người dùng
-// */
-// // public Profile getProfileByUser(Users user) {
-// // return profileRepository.findByUser(user)
-// // .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ người
-// dùng"));
-// // }
+        return new UserProfileDto(
+                profile.getFullName(),
+                profile.getGender(),
+                profile.getDateOfBirth(),
+                user.getEmail(),
+                user.getPhone(),
+                profile.getAddress(),
+                profile.getAvatarUrl());
+    }
 
-// // /**
-// // * Cập nhật thông tin người dùng và hồ sơ
-// // */
-// // public Users updateProfile(Users user, UpdateProfileRequest dto) {
-// // Profile profile = profileRepository.findByUser(user)
-// // .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ người
-// dùng"));
+    public void updateUserProfile(Users user, UpdateProfileDto dto) {
+        Profile profile = profileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ"));
 
-// // // Cập nhật Profile
-// // if (dto.getFullName() != null)
-// // profile.setFullName(dto.getFullName());
+        profile.setFullName(dto.getFullName());
+        profile.setGender(dto.getGender());
+        profile.setDateOfBirth(dto.getDateOfBirthday());
+        profile.setAddress(dto.getAddress());
+        user.setPhone(dto.getPhone());
 
-// // if (dto.getGender() != null)
-// // profile.setGender(dto.getGender());
+        MultipartFile avatar = dto.getAvatar();
+        if (avatar != null && !avatar.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID() + "_" + avatar.getOriginalFilename();
 
-// // if (dto.getDateOfBirthday() != null)
-// // profile.setdateOfBirth(dto.getDateOfBirthday());
 
-// // if (dto.getAddress() != null)
-// // profile.setAddress(dto.getAddress());
+                String uploadDir = System.getProperty("user.dir") + "/uploads/avatar";
+                Path uploadPath = Paths.get(uploadDir);
 
-// // if (dto.getAvatarUrl() != null)
-// // profile.setAvatarUrl(dto.getAvatarUrl());
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
 
-// // // Cập nhật User (email, phone)
-// // if (dto.getEmail() != null)
-// // user.setEmail(dto.getEmail());
+                Path filePath = uploadPath.resolve(fileName);
+                avatar.transferTo(filePath.toFile());
 
-// // if (dto.getPhone() != null)
-// // user.setPhone(dto.getPhone());
+                profile.setAvatarUrl("/avatars/" + fileName);
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi khi lưu avatar", e);
+            }
+        }
 
-// // // Gán lại profile cho user nếu cần
-// // user.setProfile(profile);
+        profileRepository.save(profile);
+        userRepository.save(user);
+    }
 
-// // return userRepository.save(user); // do Cascade.ALL nên profile cũng sẽ
-// được lưu
-// // }
-
-// }
+    public Users getUserByEmail(String email) {
+        Optional<Users> user = userRepository.findByEmail(email);
+        return user.orElse(null);
+    }
+}

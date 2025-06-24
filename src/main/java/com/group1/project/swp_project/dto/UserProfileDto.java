@@ -1,6 +1,7 @@
 package com.group1.project.swp_project.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,4 +20,8 @@ public class UserProfileDto {
     private String phone;
     private String address;
     private String avatarUrl;
+
+    private String role;
+    private LocalDateTime createdAt;
+    private boolean active;
 }

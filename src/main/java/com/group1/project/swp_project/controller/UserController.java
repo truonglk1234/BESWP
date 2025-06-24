@@ -26,24 +26,25 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/profile")
-    public ResponseEntity<UserProfileDto> getUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        String email = userDetails.getUsername();
-        Users user = userService.getUserByEmail(email);
-        UserProfileDto profile = userService.getUserProfile(user);
+    // @GetMapping("/profile")
+    // public ResponseEntity<UserProfileDto> getUserProfile(@AuthenticationPrincipal
+    // UserDetails userDetails) {
+    // String email = userDetails.getUsername();
+    // Users user = userService.getUserByEmail(email);
+    // UserProfileDto profile = userService.getUserProfile(user);
 
-        return ResponseEntity.ok(profile);
-    }
+    // return ResponseEntity.ok(profile);
+    // }
 
-    @PutMapping("/profile")
-    public ResponseEntity<?> updateUserProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody UserProfileDto dto) {
+    // @PutMapping("/profile")
+    // public ResponseEntity<?> updateUserProfile(
+    // @AuthenticationPrincipal UserDetails userDetails,
+    // @RequestBody UserProfileDto dto) {
 
-        String email = userDetails.getUsername(); // username chính là email
-        Users user = userService.getUserByEmail(email);
+    // String email = userDetails.getUsername(); // username chính là email
+    // Users user = userService.getUserByEmail(email);
 
-        userService.updateUserProfile(user, dto);
-        return ResponseEntity.ok("Cập nhật thành công");
-    }
+    // userService.updateUserProfile(user, dto);
+    // return ResponseEntity.ok("Cập nhật thành công");
+    // }
 }

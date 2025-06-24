@@ -36,7 +36,10 @@ public class ProfileService {
                 user.getEmail(),
                 user.getPhone(),
                 profile.getAddress(),
-                profile.getAvatarUrl());
+                profile.getAvatarUrl(),
+                user.getRole().getRoleName(),
+                user.getCreatedAt(),
+                user.getEnabled());
     }
 
     public void updateUserProfile(Users user, UpdateProfileDto dto) {
@@ -53,7 +56,6 @@ public class ProfileService {
         if (avatar != null && !avatar.isEmpty()) {
             try {
                 String fileName = UUID.randomUUID() + "_" + avatar.getOriginalFilename();
-
 
                 String uploadDir = System.getProperty("user.dir") + "/uploads/avatar";
                 Path uploadPath = Paths.get(uploadDir);

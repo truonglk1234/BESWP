@@ -17,7 +17,7 @@ import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtil {
-    private final long jwtExpirationMs = 864000; // 1 ngày
+    private final long jwtExpirationMs = 7 * 24 * 60 * 60 * 1000L; // 7 ngày
     private final String SECRET_KEY = "my_secret_key_12345678901234567890123456789012";
     private SecretKey key;
     private final TokenBlacklistService tokenBlacklistService;

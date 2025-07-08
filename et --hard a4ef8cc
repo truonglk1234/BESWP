@@ -1,0 +1,49 @@
+[33m16e2225[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32moldmaster[m[33m, [m[1;31morigin/oldmaster[m[33m, [m[1;32mmaster[m[33m)[m Thêm bản giá cho tư vấn và xét nghiệm
+[33m708652a[m thêm giá tiền cho tư vấn và xét nghiệm
+[33md383149[m thêm giá tiền cho tư vấn và xét nghiệm
+[33mdf16a45[m Thêm bảng giá dịch vụ
+[33md3c2dc2[m .
+[33mada1d35[m .
+[33m3c0f488[m .
+[33mde8b4eb[m .
+[33m6a1c653[m Merge branch 'oldmaster' of https://github.com/truonglk1234/Swp391_Project into oldmaster
+[33m8893f1b[m Merge branch 'oldmaster' of https://github.com/truonglk1234/Swp391_Project into oldmaster
+[33m86ef451[m dich vu y te
+[33mb2628d8[m .
+[33ma4ef8cc[m Thêm chức năng thông báo và cho customer khai báo chu kì kinh nguyệt
+[33m64e9584[m thông tin tài khoan
+[33m6b85776[m Sửa lỗi
+[33m137093d[m Blog cho staff
+[33m99c5523[m Sửa xíu
+[33m72dff0b[m Tải ảnh lên
+[33m2ece8a1[m Tải ảnh đại diện
+[33mf18ec5a[m tư vấn viên
+[33m4dcecee[m Update profile controller
+[33m39a2b27[m Thêm phân quyên
+[33m541ea28[m ✨ Update: Upload working code with auth fix
+[33mc2528bd[m Cập nhật BMHeader blog layout
+[33m703b5d0[m Merge branch 'oldmaster' of https://github.com/truonglk1234/Swp391_Project into oldmaster
+[33m2a5e393[m .
+[33m49427f5[m Blog
+[33md8704f3[m Blog
+[33m7587441[m Function base User
+[33ma73b471[m Manager
+[33m9a20abe[m Sửa lại manager
+[33m4ebabd4[m Agian
+[33m26efc50[m Fix login
+[33m26476cb[m[33m ([m[1;32mdev[m[33m)[m OlderMaster
+[33mb102b38[m Blog đăng và tùy chỉnh
+[33m4945402[m Delete and Update
+[33maa40af7[m Cập nhật admin/manager xem danh sách user
+[33m4e43fe1[m Add logout
+[33mf337002[m Thêm quên mật khẩu và sửa lại đăng nhập
+[33maf9c645[m Thêm chức năng gừi lại mã
+[33ma9ac02e[m Thêm chức năng xác thức gmail
+[33medc3141[m Login bang userPhone
+[33ma71b012[m Merge branch 'master' of https://github.com/truonglk1234/Swp391_Project
+[33m4f0c627[m Initial commit: Login
+[33mb5ce167[m Update README.md
+[33mf6d0c73[m Update README.md
+[33m2c2c524[m Create README.md
+[33m6ea67d8[m Thêm chức năng đăng ký người dùng
+[33m3669308[m Initial commit

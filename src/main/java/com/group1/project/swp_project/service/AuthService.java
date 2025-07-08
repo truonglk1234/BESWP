@@ -13,11 +13,14 @@ import com.group1.project.swp_project.repository.VerificationTokenRepository;
 import com.group1.project.swp_project.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class AuthService {
@@ -30,7 +33,7 @@ public class AuthService {
     private final VerificationTokenRepository tokenRepository;
     private final EmailService emailService; // EmailService đã được nâng cấp
 
-    // ... (constructor và các phương thức khác giữ nguyên) ...
+
     public static final String DEFAULT_ROLE_NAME = "Customer";
     public static final String DEFAULT_STATUS_NAME = "Inactive";
 
@@ -57,7 +60,7 @@ public class AuthService {
 
     @Transactional
     public Users registerUser(RegisterDto registerDto) {
-        // ... (logic kiểm tra và tạo user giữ nguyên) ...
+
         if (registerDto.getPassword() == null || !registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
             throw new RuntimeException("Lỗi: Mật khẩu và xác nhận mật khẩu không khớp!");
         }
@@ -96,13 +99,13 @@ public class AuthService {
         VerificationToken verificationToken = new VerificationToken(code, savedUser);
         tokenRepository.save(verificationToken);
 
-        // --- ĐÂY LÀ CHỖ THAY ĐỔI ---
+
         String recipientAddress = savedUser.getEmail();
-        String subject = "Mã xác thực tài khoản STI Health"; // Tên ứng dụng của bạn
+        String subject = "Mã xác thực tài khoản STI Health";
 
         // Gọi phương thức mới của EmailService để gửi email HTML
         emailService.sendVerificationEmail(recipientAddress, subject, code);
-        // --- KẾT THÚC THAY ĐỔI ---
+
 
         return savedUser;
     }
@@ -118,13 +121,13 @@ public class AuthService {
             throw new RuntimeException("Mật khẩu không đúng");
         }
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().getRoleName(),
-                user.getProfile().getFullName());
+                user.getProfile().getFullName(), request.isRememberMe());
         return new LoginResponse(token, user.getRole().getRoleName(), user.getId());
     }
 
     @Transactional
     public void verifyCode(VerificationRequest request) {
-        // ... (giữ nguyên) ...
+
         Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email này."));
 
@@ -180,56 +183,70 @@ public class AuthService {
         emailService.sendVerificationEmail(user.getEmail(), subject, newCde);
     }
 
+//    @Transactional
+//    public void requestPasswordResetCode(String email) {
+//        // 1. Tìm user bằng email
+//        Users user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+//
+//        // 2. Tạo mã mới
+//        String code = generateVerificationCode();
+//
+//        // 3. Tìm xem user đã có token chưa
+//        VerificationToken passwordResetToken = tokenRepository.findByUser(user);
+//        if (passwordResetToken == null) {
+//            // Nếu chưa có, tạo mới
+//            passwordResetToken = new VerificationToken(code, user);
+//        } else {
+//            // Nếu có rồi, cập nhật lại mã và thời gian hết hạn
+//            passwordResetToken.setToken(code);
+//            passwordResetToken.resetExpiryDate();
+//        }
+//        tokenRepository.save(passwordResetToken);
+//
+//        // 4. Gửi email chứa mã
+//        // Bạn nên tạo một template HTML mới cho việc này (password-reset-email.html)
+//        String subject = "Mã đặt lại mật khẩu cho tài khoản STI Health";
+//        emailService.sendVerificationEmail(user.getEmail(), subject, code); // Tái sử dụng phương thức gửi email
+//    }
+
     @Transactional
     public void requestPasswordResetCode(String email) {
-        // 1. Tìm user bằng email
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
-        // 2. Tạo mã mới
-        String code = generateVerificationCode();
+        String code = String.format("%06d", new Random().nextInt(999999));
 
-        // 3. Tìm xem user đã có token chưa
-        VerificationToken passwordResetToken = tokenRepository.findByUser(user);
-        if (passwordResetToken == null) {
-            // Nếu chưa có, tạo mới
-            passwordResetToken = new VerificationToken(code, user);
+        VerificationToken token = tokenRepository.findByUser(user);
+        if (token == null) {
+            token = new VerificationToken(code, user);
         } else {
-            // Nếu có rồi, cập nhật lại mã và thời gian hết hạn
-            passwordResetToken.setToken(code);
-            passwordResetToken.resetExpiryDate();
+            token.setToken(code);
+            token.resetExpiryDate();
         }
-        tokenRepository.save(passwordResetToken);
+        tokenRepository.save(token);
 
-        // 4. Gửi email chứa mã
-        // Bạn nên tạo một template HTML mới cho việc này (password-reset-email.html)
-        String subject = "Mã đặt lại mật khẩu cho tài khoản STI Health";
-        emailService.sendVerificationEmail(user.getEmail(), subject, code); // Tái sử dụng phương thức gửi email
+        emailService.sendResetPasswordEmail(user.getEmail(), code);
     }
+
 
     @Transactional
     public void resetPasswordWithCode(ResetPasswordWithCodeRequest request) {
-        // 1. Kiểm tra mật khẩu mới và xác nhận mật khẩu
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Mật khẩu mới và xác nhận mật khẩu không khớp.");
+            throw new RuntimeException("Mật khẩu mới và xác nhận không khớp.");
         }
 
-        // 2. Tìm user bằng email
         Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
-        // 3. Tìm token của user đó và xác thực
         VerificationToken token = tokenRepository.findByUser(user);
         if (token == null || !token.getToken().equals(request.getCode())
-                || token.getExpiryDate().before(new java.util.Date())) {
+                || token.getExpiryDate().before(new Date())) {
             throw new RuntimeException("Mã xác thực không hợp lệ hoặc đã hết hạn.");
         }
 
-        // 4. Mã hóa mật khẩu mới và cập nhật cho user
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-
-        // 5. Xóa token sau khi đã sử dụng thành công
         tokenRepository.delete(token);
     }
 
@@ -238,5 +255,17 @@ public class AuthService {
             throw new RuntimeException("Token không hợp lệ");
         }
         jwtUtil.invalidateToken(token);
+    }
+
+    public void changePasswordByEmail(String email, String currentPassword, String newPassword) {
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Mật khẩu hiện tại không đúng");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

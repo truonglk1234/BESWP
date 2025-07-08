@@ -2,15 +2,20 @@ package com.group1.project.swp_project.dto.req;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ResendCodeRequest {
-    @NotBlank(message = "Email kkhông được để trống")
-    @Email(message = "Email không đúng định dạng")
+@AllArgsConstructor
+@NoArgsConstructor
+public class VerifyResetCodeRequest {
+    @NotBlank
+    @Email
     private String email;
-    private String type; // "register" hoặc "reset-password"
 
+    @NotBlank
+    private String code;
 }

@@ -32,15 +32,16 @@ public class JwtUtil {
     }
 
     // ✅ Tạo token mới
-    public String generateToken(int userId, String email, String role, String name) {
+    public String generateToken(int userId, String email, String role, String name, boolean rememberMe) {
+        long expirationTime = rememberMe ? jwtExpirationMs : 60 * 60 * 1000;
         return Jwts.builder()
-                .setSubject(email) // sub = email
+                .setSubject(email)
                 .claim("userId", userId)
                 .claim("Name", name)
                 .claim("role", role)
                 .claim("authorities", List.of(role))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

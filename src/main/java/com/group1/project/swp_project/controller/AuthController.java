@@ -1,12 +1,16 @@
 package com.group1.project.swp_project.controller;
 
 import com.group1.project.swp_project.dto.*;
-import com.group1.project.swp_project.dto.req.LoginRequest;
-import com.group1.project.swp_project.dto.req.ResendCodeRequest;
-import com.group1.project.swp_project.dto.req.ResetPasswordWithCodeRequest;
+import com.group1.project.swp_project.dto.req.*;
 import com.group1.project.swp_project.dto.res.LoginResponse;
+import com.group1.project.swp_project.entity.Users;
+import com.group1.project.swp_project.entity.VerificationToken;
+import com.group1.project.swp_project.repository.UserRepository;
+import com.group1.project.swp_project.repository.UserStatusRepository;
+import com.group1.project.swp_project.repository.VerificationTokenRepository;
 import com.group1.project.swp_project.service.AuthService;
 import com.group1.project.swp_project.security.JwtUtil;
+import com.group1.project.swp_project.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,9 +18,16 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.Date;
+import java.util.Map;
 
 @Tag(name = "1. Authentication", description = "APIs for User Registration, Login, and Verification")
 @RestController
@@ -24,10 +35,18 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-
-    public AuthController(AuthService authService, JwtUtil jwtUtil) {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
+    public AuthController(AuthService authService, JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, VerificationTokenRepository verificationTokenRepository, UserService userService) {
         this.authService = authService;
-
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.userService = userService;
+        this.jwtUtil =  jwtUtil;
     }
 
     @Operation(summary = "Register a new user", description = "Creates a new user account and sends a verification code to the email.")
@@ -63,47 +82,41 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Bad Request - Invalid email or code, or token expired.")
     @PostMapping("/verify-code")
     public ResponseEntity<String> verifyCode(@Valid @RequestBody VerificationRequest verificationRequest) {
-        try {
-            authService.verifyCode(verificationRequest);
-            return ResponseEntity.ok("Tài khoản đã được kích hoạt thành công!");
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
+        String email = verificationRequest.getEmail();
+        String code = verificationRequest.getCode();
 
-    @Operation(summary = "Resend verification code", description = "Generates and sends a new verification code to the user's email.")
-    @ApiResponse(responseCode = "200", description = "Verification code resent successfully.")
-    @ApiResponse(responseCode = "400", description = "Bad Request - User not found or already verified.")
-    @PostMapping("/resend-code")
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
-    public ResponseEntity<String> resendVerificationCode(@Valid @RequestBody ResendCodeRequest request) {
-        try {
-            authService.resendVerificationCode(request.getEmail());
-            return ResponseEntity.ok("Mã xác thực mới đã được gửi đến email của bạn.");
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
 
-    @Operation(summary = "Request a password reset code", description = "Sends a password reset code to the user's email.")
-    @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ResendCodeRequest request) {
-        try {
-            authService.requestPasswordResetCode(request.getEmail());
-            return ResponseEntity.ok("Một mã để đặt lại mật khẩu đã được gửi đến email của bạn.");
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        VerificationToken token = verificationTokenRepository.findByUser(user);
+        if (token == null || !token.getToken().equals(code)) {
+            return ResponseEntity.badRequest().body("Mã xác thực không chính xác.");
         }
+
+        if (token.getExpiryDate().before(new Date())) {
+            return ResponseEntity.badRequest().body("Mã xác thực đã hết hạn.");
+        }
+
+        if (!user.isEnabled()) {
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
+
+        verificationTokenRepository.delete(token);
+
+        return ResponseEntity.ok("Tài khoản đã được kích hoạt thành công! Vui lòng đăng nhập lại.");
     }
 
     @Operation(summary = "Reset user password with code", description = "Sets a new password for the user using a valid code.")
     @PostMapping("/reset-password-with-code")
-    public ResponseEntity<String> resetPasswordWithCode(@Valid @RequestBody ResetPasswordWithCodeRequest request) {
+    public ResponseEntity<String> resetPasswordWithCode(
+            @Valid @RequestBody ResetPasswordWithCodeRequest request) {
         try {
             authService.resetPasswordWithCode(request);
             return ResponseEntity.ok("Mật khẩu của bạn đã được đặt lại thành công.");
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -146,4 +159,52 @@ public class AuthController {
                     .body("Error during logout: " + e.getMessage());
         }
     }
+
+    @Operation(summary = "Resend verification or reset password code", description = "Gửi lại mã xác thực hoặc mã quên mật khẩu.")
+    @PostMapping("/resend-code")
+    public ResponseEntity<String> resendCode(@RequestBody ResendCodeRequest request) {
+        try {
+            String type = request.getType();
+            if ("register".equalsIgnoreCase(type)) {
+                authService.resendVerificationCode(request.getEmail());
+                return ResponseEntity.ok("✅ Mã xác thực tài khoản đã được gửi lại.");
+            } else if ("reset-password".equalsIgnoreCase(type)) {
+                authService.requestPasswordResetCode(request.getEmail());
+                return ResponseEntity.ok("✅ Mã đặt lại mật khẩu đã được gửi lại.");
+            } else {
+                return ResponseEntity.badRequest().body("Loại mã không hợp lệ. Hãy dùng 'register' hoặc 'reset-password'.");
+            }
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<?> verifyResetCode(@RequestBody @Valid VerifyResetCodeRequest request) {
+        Users user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        VerificationToken token = verificationTokenRepository.findByUser(user);
+        if (token == null || !token.getToken().equals(request.getCode()) || token.getExpiryDate().before(new Date())) {
+            return ResponseEntity.badRequest().body("Mã xác thực không hợp lệ hoặc đã hết hạn.");
+        }
+
+        return ResponseEntity.ok("Xác thực thành công.");
+    }
+
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+            @RequestHeader("Authorization") @NotNull String bearerToken,
+            @RequestBody ChangePasswordRequest request
+    ) {
+        String token = bearerToken.substring(7);
+        String email = jwtUtil.extractUserEmail(token);
+
+        authService.changePasswordByEmail(email, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
+    }
+
+   
 }

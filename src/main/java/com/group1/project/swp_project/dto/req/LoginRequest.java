@@ -11,4 +11,6 @@ public class LoginRequest {
     private String email; // có thể null nếu dùng phone
     @NotBlank
     private String password;
+    private boolean rememberMe;
+
 }

@@ -46,8 +46,22 @@ public class ExaminationPaymentController {
     }
 
     @GetMapping("/vnpay-callback")
-    public ResponseEntity<String> vnpayCallback(@RequestParam String vnp_TxnRef, @RequestParam String vnp_ResponseCode) {
-        paymentService.handleVnpayCallback(vnp_TxnRef, vnp_ResponseCode);
+    public ResponseEntity<String> vnpayCallback(
+            @RequestParam String vnp_TxnRef,
+            @RequestParam String vnp_ResponseCode,
+            @RequestParam(required = false) String vnp_BankCode,
+            @RequestParam(required = false) String vnp_BankTranNo,
+            @RequestParam(required = false) String vnp_PayDate,
+            @RequestParam(required = false) String vnp_TransactionNo
+    ) {
+        paymentService.handleVnpayCallback(
+                vnp_TxnRef,
+                vnp_ResponseCode,
+                vnp_BankCode,
+                vnp_BankTranNo,
+                vnp_PayDate,
+                vnp_TransactionNo
+        );
         return ResponseEntity.ok("OK");
     }
 

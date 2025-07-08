@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,12 +46,19 @@ public class ExaminationPaymentService {
 
     // Callback từ VNPAY về (controller sẽ gọi hàm này)
     @Transactional
-    public void handleVnpayCallback(String txnRef, String vnp_ResponseCode) {
+    public void handleVnpayCallback(String txnRef, String vnp_ResponseCode,
+                                    String bankCode, String bankTranNo,
+                                    String payDate, String transactionNo) {
         ExaminationPayment payment = paymentRepo.findByTxnRef(txnRef).orElseThrow();
         ExaminationBooking booking = payment.getExaminationBooking();
 
-        if ("00".equals(vnp_ResponseCode)) { // thanh toán thành công
+        if ("00".equals(vnp_ResponseCode)) {
             payment.setPaymentStatus("SUCCESS");
+            payment.setBankCode(bankCode);
+            payment.setBankTranNo(bankTranNo);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            payment.setPayDate(LocalDateTime.parse(payDate, formatter));
+            payment.setVnpTransactionNo(transactionNo);
             paymentRepo.save(payment);
 
             booking.setStatus("WAITING_ASSIGN");

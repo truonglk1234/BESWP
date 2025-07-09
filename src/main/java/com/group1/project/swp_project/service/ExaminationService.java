@@ -98,10 +98,10 @@ public class ExaminationService {
         // 3. Gán kết quả và lời khuyên
         er.setResult(result);
         er.setAdvice(advice);
-        er.setStatus("RESULT_RETURNED");
+        er.setStatus("Đã trả kết quả");
 
         // 4. Cập nhật trạng thái booking
-        booking.setStatus("RESULT_RETURNED");
+        booking.setStatus("Đã trả kết quả");
         examinationBookingRepository.save(booking);
 
         // 5. Lưu và trả về kết quả
@@ -142,7 +142,7 @@ public class ExaminationService {
 
         // 4. Assign staff cho booking này
         booking.setAssignedStaff(nextStaff);
-        booking.setStatus("RECEIVED");
+        booking.setStatus("Đã tiếp nhận");
         return examinationBookingRepository.save(booking);
     }
 

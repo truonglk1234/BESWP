@@ -1,9 +1,9 @@
 package com.group1.project.swp_project.controller;
 
 import com.group1.project.swp_project.entity.ExaminationBooking;
-import com.group1.project.swp_project.entity.ExaminationPayment;
+import com.group1.project.swp_project.entity.Payment;
 import com.group1.project.swp_project.repository.ExaminationBookingRepository;
-import com.group1.project.swp_project.repository.ExaminationPaymentRepository;
+import com.group1.project.swp_project.repository.PaymentRepository;
 import com.group1.project.swp_project.service.VnpayService;
 import com.group1.project.swp_project.utils.VnPayUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,7 @@ import java.util.*;
 public class PaymentController {
 
     private final VnpayService vnpayService;
-    private final ExaminationPaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
     private final ExaminationBookingRepository bookingRepository;
 
     @Value("${vnpay.hashSecret}")
@@ -72,7 +72,7 @@ public class PaymentController {
         }
 
 
-        ExaminationPayment payment = new ExaminationPayment();
+        Payment payment = new Payment();
         payment.setExaminationBooking(booking);
         payment.setAmount(String.valueOf(amount));
         payment.setPaymentMethod("VNPAY");
@@ -124,9 +124,9 @@ public class PaymentController {
             String vnp_TxnRef = request.getParameter("vnp_TxnRef");
             String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
 
-            Optional<ExaminationPayment> paymentOpt = paymentRepository.findByTxnRef(vnp_TxnRef);
+            Optional<Payment> paymentOpt = paymentRepository.findByTxnRef(vnp_TxnRef);
             if (paymentOpt.isPresent()) {
-                ExaminationPayment payment = paymentOpt.get();
+                Payment payment = paymentOpt.get();
                 if ("Đang xử lí".equals(payment.getPaymentStatus())) {
                     if ("00".equals(vnp_ResponseCode)) {
                         payment.setPaymentStatus("Thành công");

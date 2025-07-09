@@ -5,11 +5,13 @@ import com.group1.project.swp_project.dto.UserProfileDto;
 import com.group1.project.swp_project.dto.req.UpdateProfileDto;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.service.ProfileService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Quản lý thông tin người dùng")
 @RestController
 @RequestMapping("/api/auth/profileuser")
 public class ProfileController {

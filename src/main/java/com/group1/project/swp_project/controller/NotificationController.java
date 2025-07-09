@@ -3,12 +3,14 @@ package com.group1.project.swp_project.controller;
 import com.group1.project.swp_project.entity.Notification;
 import com.group1.project.swp_project.repository.UserRepository;
 import com.group1.project.swp_project.service.NotificationService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Notification", description = "Quản lý thông báo")
 @RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {

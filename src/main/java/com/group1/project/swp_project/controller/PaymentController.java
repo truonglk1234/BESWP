@@ -6,6 +6,7 @@ import com.group1.project.swp_project.repository.ExaminationBookingRepository;
 import com.group1.project.swp_project.repository.ExaminationPaymentRepository;
 import com.group1.project.swp_project.service.VnpayService;
 import com.group1.project.swp_project.utils.VnPayUtils;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Tag(name = "Thanh toán dịch vụ khám chữa bệnh")
 @RestController
 @RequestMapping("/api/v1/payment")
 @RequiredArgsConstructor

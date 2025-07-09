@@ -1,5 +1,6 @@
 package com.group1.project.swp_project.controller;
 
+import com.group1.project.swp_project.dto.ChangePasswordRequestDto;
 import com.group1.project.swp_project.dto.UserProfileDto;
 import com.group1.project.swp_project.dto.req.UpdateProfileDto;
 import com.group1.project.swp_project.entity.Users;
@@ -8,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/auth/profileuser")
@@ -37,5 +37,15 @@ public class ProfileController {
         Users user = profileService.getUserByEmail(email);
         profileService.updateUserProfile(user, dto);
         return ResponseEntity.ok("Cập nhật thành công");
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ChangePasswordRequestDto request) {
+
+        String email = userDetails.getUsername();
+        profileService.changePassword(email, request);
+        return ResponseEntity.ok("Đổi mật khẩu thành công");
     }
 }

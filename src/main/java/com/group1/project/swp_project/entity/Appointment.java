@@ -29,7 +29,7 @@ public class Appointment {
     // nếu có chọn tư vấn viên:
     @ManyToOne
     @JoinColumn(name = "consultant_id")
-    private Consultant consultant;
+    private Users consultant;
 
     @Column(name = "status") // pending, confirmed, cancelled
     private String status;

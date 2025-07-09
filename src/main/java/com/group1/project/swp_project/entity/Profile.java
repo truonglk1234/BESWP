@@ -43,4 +43,22 @@ public class Profile {
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
+    // === Các trường dành riêng cho consultant ===
+    private Double consultationFee;
+
+    @Column(name = "specialty", length = 100)
+    private String specialty;
+
+    @Column(name = "experience_years")
+    private Integer experienceYears;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "education", columnDefinition = "NVARCHAR(MAX)")
+    private String education;
+
+    @Column(name = "certifications", columnDefinition = "NVARCHAR(MAX)")
+    private String certifications;
+
 }

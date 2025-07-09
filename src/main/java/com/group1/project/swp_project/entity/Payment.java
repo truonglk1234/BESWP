@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "examination_payments")
+@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,8 +25,8 @@ public class Payment {
     @Column(name = "payment_method")
     private String paymentMethod; // e.g. VNPAY
 
-    @Column(name = "payment_status")
-    private String paymentStatus; // PENDING, SUCCESS, FAILED, REFUNDED
+    @Column(name = "payment_status", columnDefinition = "NVARCHAR(20)")
+    private String paymentStatus;
 
     @Column(name = "txn_ref")
     private String txnRef;

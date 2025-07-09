@@ -24,4 +24,11 @@ public class UserProfileDto {
     private String role;
     private LocalDateTime createdAt;
     private boolean active;
+
+    private String specialty;
+    private Integer experienceYears;
+    private Double consultationFee;
+    private String description;
+    private String education;
+    private String certifications;
 }

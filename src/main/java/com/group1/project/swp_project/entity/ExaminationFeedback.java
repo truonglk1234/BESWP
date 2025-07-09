@@ -23,6 +23,10 @@ public class ExaminationFeedback {
     @JoinColumn(name = "user_id")
     private Users user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "consultant_id")
+    private Users consultant;
+
     @ManyToOne
     @JoinColumn(name = "service_id")
     private ServicePrice service;

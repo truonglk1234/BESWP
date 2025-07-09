@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class UpdateProfileDto {
     private String fullName;
     private Boolean gender;
-    private LocalDate dateOfBirthday;
+    private LocalDate dateOfBirth;
     private String address;
 
     @Email(message = "Email không hợp lệ")
@@ -21,4 +21,10 @@ public class UpdateProfileDto {
     private String phone;
 
     private MultipartFile avatar;
+
+    private String specialty;
+    private Integer experienceYears;
+    private Double consultationFee;
+    private String education;
+    private String certifications;
 }

@@ -5,26 +5,26 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.group1.project.swp_project.dto.req.CreateTestBookingRequest;
-import com.group1.project.swp_project.entity.Consultant;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.entity.TestBooking;
 import com.group1.project.swp_project.entity.TestPackage;
-import com.group1.project.swp_project.entity.Users;
-import com.group1.project.swp_project.repository.ConsultantRepository;
 import com.group1.project.swp_project.repository.TestBookingRepository;
 import com.group1.project.swp_project.repository.TestPackageRepository;
+import com.group1.project.swp_project.repository.UserRepository;
 
 @Service
 public class TestBookingService {
 
-    private TestBookingRepository bookingRepo;
-    private TestPackageRepository testPackageRepo;
-    private ConsultantRepository consultantRepo;
+    private final TestBookingRepository bookingRepo;
+    private final TestPackageRepository testPackageRepo;
+    private final UserRepository userRepository; // Dùng Users thay cho Consultant
 
-    public TestBookingService(TestBookingRepository bookingRepo, TestPackageRepository testPackageRepo,
-            ConsultantRepository consultantRepo) {
+    public TestBookingService(TestBookingRepository bookingRepo,
+            TestPackageRepository testPackageRepo,
+            UserRepository userRepository) {
         this.bookingRepo = bookingRepo;
         this.testPackageRepo = testPackageRepo;
-        this.consultantRepo = consultantRepo;
+        this.userRepository = userRepository;
     }
 
     public TestBooking createBooking(Users user, CreateTestBookingRequest request) {
@@ -39,8 +39,14 @@ public class TestBookingService {
         booking.setStatus("pending");
 
         if (request.getConsultantId() != null) {
-            Consultant consultant = consultantRepo.findById(request.getConsultantId())
+            Users consultant = userRepository.findById(request.getConsultantId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy tư vấn viên"));
+
+            // Nếu muốn chắc chắn người này là CONSULTANT:
+            if (!"CONSULTANT".equalsIgnoreCase(consultant.getRole().getRoleName())) {
+                throw new RuntimeException("Người được chọn không phải tư vấn viên!");
+            }
+
             booking.setConsultant(consultant);
         }
 

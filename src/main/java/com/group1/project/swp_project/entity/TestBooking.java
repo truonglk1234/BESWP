@@ -34,5 +34,5 @@ public class TestBooking {
 
     @ManyToOne
     @JoinColumn(name = "consultant_id")
-    private Consultant consultant;
+    private Users consultant;
 }

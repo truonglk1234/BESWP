@@ -1,6 +1,7 @@
 package com.group1.project.swp_project.controller;
 
 import com.group1.project.swp_project.dto.UserSummary;
+import com.group1.project.swp_project.dto.req.CreateUserRequest;
 import com.group1.project.swp_project.dto.req.UpdateProfileRequest;
 import com.group1.project.swp_project.service.UserManagementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,5 +78,10 @@ public class ManagerController {
     @DeleteMapping("/customers/{id}")
     public ResponseEntity<UserSummary> deleteCustomer(@PathVariable int id) {
         return ResponseEntity.ok(userManagementService.deleteUser(id));
+    }
+
+    @PostMapping("/staff")
+    public ResponseEntity<UserSummary> createStaff(@RequestBody CreateUserRequest request) {
+        return ResponseEntity.ok(userManagementService.createStaff(request));
     }
 }

@@ -3,11 +3,11 @@ package com.group1.project.swp_project.controller;
 import com.group1.project.swp_project.dto.req.ExaminationBookingRequest;
 import com.group1.project.swp_project.dto.req.ExaminationResultRequest;
 import com.group1.project.swp_project.dto.res.ExaminationBookingDetailRes;
-import com.group1.project.swp_project.entity.*;
+import com.group1.project.swp_project.entity.ExaminationBooking;
+import com.group1.project.swp_project.entity.ExaminationResult;
+import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import com.group1.project.swp_project.service.ExaminationService;
-import com.group1.project.swp_project.service.TestBookingService;
-import com.group1.project.swp_project.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,58 +22,61 @@ import java.util.List;
 @RestController
 @RequestMapping("api/examinations")
 public class ExaminationBookingController {
+
     @Autowired
     private ExaminationService examinationService;
 
     @Autowired
     private UserRepository userRepository;
 
-
-    // Đặt lịch
     @PostMapping("/book")
     public ResponseEntity<?> createBooking(@RequestBody @NotNull ExaminationBookingRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
 
-        Users user = userRepository.findByEmail(email).orElseThrow();
-
-        ExaminationBooking booking = examinationService.createBooking(
-                (long) user.getId(), request
-        );
-
+        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+        ExaminationBooking booking = examinationService.createBooking((long) user.getId(), request);
         return ResponseEntity.ok(booking);
     }
 
-    @PutMapping("/{bookingId}/assign")
-    public ResponseEntity<?> assignStaffToBooking(@PathVariable Long bookingId) {
-        ExaminationBooking assigned = examinationService.assignStaffToBookingRoundRobin(bookingId);
-        return ResponseEntity.ok(assigned);
-    }
-
-    // Staff cập nhật trạng thái booking
     @PutMapping("/{bookingId}/status")
-    public ResponseEntity<?> updateStatus(
-            @PathVariable Long bookingId,
-            @RequestParam String newStatus,
-            @RequestParam Long staffId
-    ) {
-        ExaminationBooking updated = examinationService.updateBookingStatus(bookingId, newStatus, staffId);
+    public ResponseEntity<?> updateStatus(@PathVariable Long bookingId, @RequestParam String newStatus) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Users staff = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Staff not found for email: " + email));
+
+        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+        ExaminationBooking updated = examinationService.updateBookingStatus(bookingId, newStatus, (long) staff.getId());
         return ResponseEntity.ok(updated);
     }
 
-    // Lấy lịch sử booking của user
-    @GetMapping("/user/{userId}/bookings")
-    public List<ExaminationBooking> getUserBookings(@PathVariable Long userId) {
-        return examinationService.getBookingsForUser(userId);
+    @GetMapping("/my-bookings")
+    public ResponseEntity<List<ExaminationBooking>> getCurrentUserBookings() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+
+        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+        List<ExaminationBooking> bookings = examinationService.getBookingsForUser((long) user.getId());
+        return ResponseEntity.ok(bookings);
     }
 
-    // Lấy lịch sử booking của staff
-    @GetMapping("/staff/{staffId}/bookings")
-    public List<ExaminationBooking> getStaffBookings(@PathVariable Long staffId) {
-        return examinationService.getBookingsForStaff(staffId);
+    @GetMapping("/staff/my-tasks")
+    public ResponseEntity<List<ExaminationBooking>> getCurrentStaffTasks() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Users staff = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Staff not found for email: " + email));
+
+        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+        List<ExaminationBooking> bookings = examinationService.getBookingsForStaff((long) staff.getId());
+        return ResponseEntity.ok(bookings);
     }
 
-    // Staff cập nhật kết quả xét nghiệm
     @PutMapping("/{bookingId}/result")
     public ResponseEntity<?> updateResult(
             @PathVariable Long bookingId,
@@ -92,5 +95,4 @@ public class ExaminationBookingController {
         ExaminationBookingDetailRes res = examinationService.getBookingDetail(id);
         return ResponseEntity.ok(res);
     }
-
 }

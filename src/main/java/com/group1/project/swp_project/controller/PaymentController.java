@@ -4,6 +4,7 @@ import com.group1.project.swp_project.entity.ExaminationBooking;
 import com.group1.project.swp_project.entity.Payment;
 import com.group1.project.swp_project.repository.ExaminationBookingRepository;
 import com.group1.project.swp_project.repository.PaymentRepository;
+import com.group1.project.swp_project.service.ExaminationService;
 import com.group1.project.swp_project.service.VnpayService;
 import com.group1.project.swp_project.utils.VnPayUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,35 +29,29 @@ public class PaymentController {
     private final VnpayService vnpayService;
     private final PaymentRepository paymentRepository;
     private final ExaminationBookingRepository bookingRepository;
+    private final ExaminationService examinationService; // ✅ Bổ sung service xử lý booking
 
     @Value("${vnpay.hashSecret}")
     private String vnp_HashSecret;
 
     @PostMapping("/create-payment")
-
     public ResponseEntity<String> createPayment(HttpServletRequest request,
                                                 @RequestParam Long bookingId) {
-
         Optional<ExaminationBooking> bookingOpt = bookingRepository.findById(bookingId);
         if (bookingOpt.isEmpty()) {
             return new ResponseEntity<>("Booking with ID " + bookingId + " not found", HttpStatus.NOT_FOUND);
         }
         ExaminationBooking booking = bookingOpt.get();
 
-
         long amount;
         try {
-
             amount = booking.getService().getPrice();
         } catch (Exception e) {
-
-            return new ResponseEntity<>("Could not determine the price for this booking. Associated service may be missing.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Không thể xác định giá dịch vụ", HttpStatus.BAD_REQUEST);
         }
-
 
         String orderInfo = "Thanh toán cho booking " + bookingId;
         String paymentUrl = vnpayService.createPaymentUrl(request, amount, orderInfo);
-
 
         String txnRef = "";
         try {
@@ -68,9 +63,8 @@ public class PaymentController {
                 }
             }
         } catch (Exception e) {
-            return new ResponseEntity<>("Error processing payment URL", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Lỗi tạo mã giao dịch", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
 
         Payment payment = new Payment();
         payment.setExaminationBooking(booking);
@@ -81,14 +75,11 @@ public class PaymentController {
         payment.setCreatedAt(LocalDateTime.now());
         paymentRepository.save(payment);
 
-
         return new ResponseEntity<>(paymentUrl, HttpStatus.OK);
     }
 
-
     @GetMapping("/vnpay-callback")
     public ResponseEntity<String> vnpayCallback(HttpServletRequest request) {
-
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = params.nextElement();
@@ -101,7 +92,6 @@ public class PaymentController {
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
         fields.remove("vnp_SecureHashType");
         fields.remove("vnp_SecureHash");
-
 
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
@@ -130,14 +120,20 @@ public class PaymentController {
                 if ("Đang xử lí".equals(payment.getPaymentStatus())) {
                     if ("00".equals(vnp_ResponseCode)) {
                         payment.setPaymentStatus("Thành công");
+                        payment.setPayDate(LocalDateTime.now());
+                        payment.setBankCode(request.getParameter("vnp_BankCode"));
+                        payment.setBankTranNo(request.getParameter("vnp_BankTranNo"));
+                        payment.setVnpTransactionNo(request.getParameter("vnp_TransactionNo"));
+                        paymentRepository.save(payment);
+
+                        // ✅ Gọi cập nhật trạng thái booking
+                        examinationService.processBookingAfterPayment(payment.getExaminationBooking().getId());
+
                     } else {
-                        payment.setPaymentStatus("Thật bại");
+                        payment.setPaymentStatus("Thất bại");
+                        payment.setPayDate(LocalDateTime.now());
+                        paymentRepository.save(payment);
                     }
-                    payment.setPayDate(LocalDateTime.now());
-                    payment.setBankCode(request.getParameter("vnp_BankCode"));
-                    payment.setBankTranNo(request.getParameter("vnp_BankTranNo"));
-                    payment.setVnpTransactionNo(request.getParameter("vnp_TransactionNo"));
-                    paymentRepository.save(payment);
                     return new ResponseEntity<>("{\"RspCode\":\"00\",\"Message\":\"Confirm Success\"}", HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("{\"RspCode\":\"02\",\"Message\":\"Order already confirmed\"}", HttpStatus.OK);

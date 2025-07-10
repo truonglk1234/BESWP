@@ -28,15 +28,8 @@ public class BlogService {
     @Autowired
     private TopicRepository topicRepository;
 
-    // Lấy tất cả bài viết dạng tóm tắt
 
-    public List<BlogSummary> getAllBlogSummaries() {
-        return blogRepository.findAll().stream()
-                .map(this::convertToSummaryDto)
-                .collect(Collectors.toList());
-    }
 
-    // Lấy chi tiết bài viét
 
     public BlogDetail getBlogById(int id) {
         Blog blog = blogRepository.findById(id).orElseThrow(() -> new RuntimeException("Bài viết" +
@@ -153,16 +146,10 @@ public class BlogService {
     }
 
 
-    public List<BlogSummary>getAllBlogs(){
-        return blogRepository.findAll().stream().
-                map(this::convertToSummaryDto).
-                collect(Collectors.toList());
-    }
-
-    public BlogDetail getBlogByIdDetail(int id) {
-        return blogRepository.findById(id)
-                .map(this::convertToDetailDto)
-                .orElse(null);
+    public List<BlogSummary> getAllBlogs() {
+        return blogRepository.findAllOrderByPendingFirst().stream()
+                .map(this::convertToSummaryDto)
+                .collect(Collectors.toList());
     }
 
     public List<BlogSummary> filterBlogs(String status, Integer topicId) {
@@ -187,7 +174,7 @@ public class BlogService {
 
 
     public List<BlogSummary> getBlogsByStaffEmail(String email) {
-        List<Blog> blogs = blogRepository.findByCreatedByEmail((email));
+        List<Blog> blogs = blogRepository.findByCreatedByEmailOrderByPendingFirst(email);
         return blogs.stream().map(this::convertToSummaryDto).collect(Collectors.toList());
     }
 

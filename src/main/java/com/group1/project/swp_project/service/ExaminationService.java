@@ -13,25 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @Service
 public class ExaminationService {
-    @Autowired
-    private ExaminationBookingRepository examinationBookingRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ServicePriceRepository servicePriceRepository;
-
-    @Autowired
-    private ExaminationResultRepository examinationResultRepository;
+    @Autowired private ExaminationBookingRepository examinationBookingRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private ServicePriceRepository servicePriceRepository;
+    @Autowired private ExaminationResultRepository examinationResultRepository;
 
     public ExaminationBooking createBooking(Long userId, ExaminationBookingRequest req) {
-        Users user = userRepository.findById(userId).orElseThrow();
-        ServicePrice service = servicePriceRepository.findById(req.getServiceId()).orElseThrow();
+        Users user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        ServicePrice service = servicePriceRepository.findById(req.getServiceId()).orElseThrow(() -> new RuntimeException("Service not found"));
 
         ExaminationBooking booking = new ExaminationBooking();
         booking.setUser(user);
@@ -41,53 +35,56 @@ public class ExaminationService {
         booking.setPhone(req.getPhone());
         booking.setEmail(req.getEmail());
         booking.setNote(req.getNote());
-        booking.setStatus("Đã tiếp nhận");
+        booking.setStatus("Chờ thanh toán");
 
-        examinationBookingRepository.save(booking);
-
-        return booking;
-    }
-
-
-
-    public List<ExaminationBooking> getBookingsForUser(Long userId) {
-        return examinationBookingRepository.findByUserId(userId);
-    }
-
-    public List<ExaminationBooking> getBookingsForStaff(Long staffId) {
-        return examinationBookingRepository.findByAssignedStaff_Id(staffId);
-    }
-
-    public ExaminationBooking updateBookingStatus(Long bookingId, String newStatus, Long staffId) {
-        ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch xét nghiệm"));
-
-        Users assigned = booking.getAssignedStaff();
-        if (assigned == null || assigned.getId() != staffId) {
-            throw new RuntimeException("Không phải nhân viên phụ trách xét nghiệm này");
-        }
-
-        List<String> validTransitions = List.of(
-                "Đã tiếp nhận",        // RECEIVED
-                "Đang xử lý",          // NEW STATE
-                "Đang xét nghiệm",     // IN_PROGRESS
-                "Đã hoàn tất",         // DONE
-                "Đã trả kết quả"       // RESULT_RETURNED
-        );
-        if (!validTransitions.contains(newStatus)) {
-            throw new RuntimeException("Trạng thái không hợp lệ");
-        }
-
-        booking.setStatus(newStatus);
         return examinationBookingRepository.save(booking);
     }
 
+    @Transactional
+    public void processBookingAfterPayment(Long bookingId) {
+        ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking không tồn tại: " + bookingId));
+
+        List<Users> staffList = userRepository.findAllByRole_IdOrderByIdAsc(4);
+        if (staffList.isEmpty()) {
+            throw new RuntimeException("Không có nhân viên nào để gán việc!");
+        }
+
+        Users nextStaff;
+        var lastAssignedOpt = examinationBookingRepository.findTopByAssignedStaffIsNotNullOrderByIdDesc();
+
+        if (lastAssignedOpt.isEmpty() || lastAssignedOpt.get().getAssignedStaff() == null) {
+            nextStaff = staffList.get(0);
+        } else {
+            Long lastStaffId = (long) lastAssignedOpt.get().getAssignedStaff().getId();
+            int lastIdx = -1;
+
+            // SỬA LẠI CÁCH SO SÁNH BẰNG Objects.equals()
+            for (int i = 0; i < staffList.size(); i++) {
+                if (Objects.equals(staffList.get(i).getId(), lastStaffId)) {
+                    lastIdx = i;
+                    break;
+                }
+            }
+
+            if (lastIdx == -1) {
+                nextStaff = staffList.get(0);
+            } else {
+                nextStaff = staffList.get((lastIdx + 1) % staffList.size());
+            }
+        }
+
+        booking.setAssignedStaff(nextStaff);
+        booking.setStatus("Đã tiếp nhận");
+
+        examinationBookingRepository.save(booking);
+    }
+
+
     public ExaminationResult updateResult(Long bookingId, String result, String advice) {
-        // 1. Lấy booking
         ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy booking"));
 
-        // 2. Lấy (hoặc tạo mới) kết quả xét nghiệm
         ExaminationResult er = examinationResultRepository.findByBookingId(bookingId)
                 .orElseGet(() -> {
                     ExaminationResult newEr = new ExaminationResult();
@@ -95,55 +92,14 @@ public class ExaminationService {
                     return newEr;
                 });
 
-        // 3. Gán kết quả và lời khuyên
         er.setResult(result);
         er.setAdvice(advice);
         er.setStatus("Đã trả kết quả");
 
-        // 4. Cập nhật trạng thái booking
         booking.setStatus("Đã trả kết quả");
         examinationBookingRepository.save(booking);
 
-        // 5. Lưu và trả về kết quả
         return examinationResultRepository.save(er);
-    }
-
-
-    public ExaminationBooking assignStaffToBookingRoundRobin(Long bookingId) {
-        ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking không tồn tại"));
-
-        // 1. Lấy danh sách staff (role_id = 4), sort theo user_id tăng dần
-        List<Users> staffList = userRepository.findAllByRole_IdOrderByIdAsc(4);
-        if (staffList.isEmpty()) throw new RuntimeException("Không có staff nào!");
-
-        // 2. Lấy staff cuối cùng vừa được assign booking (nếu có)
-        Long lastStaffId = null;
-        var lastAssignedBookingOpt = examinationBookingRepository.findTopByAssignedStaffIsNotNullOrderByIdDesc();
-        if (lastAssignedBookingOpt.isPresent()) {
-            lastStaffId = (long) lastAssignedBookingOpt.get().getAssignedStaff().getId();
-        }
-
-        // 3. Tìm staff kế tiếp (round-robin)
-        Users nextStaff;
-        if (lastStaffId == null) {
-            nextStaff = staffList.get(0);
-        } else {
-            int idx = -1;
-            for (int i = 0; i < staffList.size(); i++) {
-                if (staffList.get(i).getId() == lastStaffId) {
-                    idx = i;
-                    break;
-                }
-            }
-            idx = (idx + 1) % staffList.size();
-            nextStaff = staffList.get(idx);
-        }
-
-        // 4. Assign staff cho booking này
-        booking.setAssignedStaff(nextStaff);
-        booking.setStatus("Đã tiếp nhận");
-        return examinationBookingRepository.save(booking);
     }
 
     public ExaminationBookingDetailRes getBookingDetail(Long id) {
@@ -161,5 +117,44 @@ public class ExaminationService {
                 .note(booking.getNote())
                 .status(booking.getStatus())
                 .build();
+    }
+
+
+    public List<ExaminationBooking> getBookingsForUser(Long userId) {
+        return examinationBookingRepository.findByUserId(userId);
+    }
+
+    public List<ExaminationBooking> getBookingsForStaff(Long staffId) {
+        List<String> viewableStatuses = List.of(
+                "Đã tiếp nhận", "Đang xử lý", "Đang xét nghiệm", "Đã hoàn tất", "Đã trả kết quả"
+        );
+        return examinationBookingRepository.findByAssignedStaff_IdAndStatusIn(staffId, viewableStatuses);
+    }
+
+    public ExaminationBooking updateBookingStatus(Long bookingId, String newStatus, Long staffId) {
+        ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch xét nghiệm"));
+
+        String currentStatus = booking.getStatus();
+        if ("Chờ thanh toán".equalsIgnoreCase(currentStatus) || "Thanh toán thất bại".equalsIgnoreCase(currentStatus)) {
+            throw new RuntimeException("Không thể xử lý booking này vì chưa được thanh toán thành công.");
+        }
+
+        Users assigned = booking.getAssignedStaff();
+
+        // SỬA LẠI CÁCH SO SÁNH BẰNG Objects.equals()
+        if (assigned == null || !Objects.equals(assigned.getId(), staffId)) {
+            throw new RuntimeException("Bạn không phải nhân viên phụ trách xét nghiệm này");
+        }
+
+        List<String> validTransitions = List.of(
+                "Đã tiếp nhận", "Đang xử lý", "Đang xét nghiệm", "Đã hoàn tất", "Đã trả kết quả"
+        );
+        if (!validTransitions.contains(newStatus)) {
+            throw new RuntimeException("Trạng thái mới không hợp lệ");
+        }
+
+        booking.setStatus(newStatus);
+        return examinationBookingRepository.save(booking);
     }
 }

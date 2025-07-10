@@ -114,4 +114,8 @@ public class ProfileService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
+    public Users getUserById(Integer id) {
+        return userRepository.findById(id).orElse(null);
+    }
 }

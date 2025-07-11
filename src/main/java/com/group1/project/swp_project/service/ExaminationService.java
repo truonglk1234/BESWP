@@ -3,18 +3,13 @@ package com.group1.project.swp_project.service;
 import com.group1.project.swp_project.dto.req.ExaminationBookingRequest;
 import com.group1.project.swp_project.dto.res.ExaminationBookingDetailRes;
 import com.group1.project.swp_project.entity.*;
-import com.group1.project.swp_project.repository.ExaminationBookingRepository;
-import com.group1.project.swp_project.repository.ExaminationResultRepository;
-import com.group1.project.swp_project.repository.ServicePriceRepository;
-import com.group1.project.swp_project.repository.UserRepository;
+import com.group1.project.swp_project.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class ExaminationService {
@@ -22,13 +17,16 @@ public class ExaminationService {
     @Autowired private UserRepository userRepository;
     @Autowired private ServicePriceRepository servicePriceRepository;
     @Autowired private ExaminationResultRepository examinationResultRepository;
-
-    public ExaminationBooking createBooking(Long userId, ExaminationBookingRequest req) {
-        Users user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        ServicePrice service = servicePriceRepository.findById(req.getServiceId()).orElseThrow(() -> new RuntimeException("Service not found"));
+    @Autowired
+    private PaymentRepository paymentRepository;
+    @Autowired
+    private VnpayService vnpayService;
+    public ExaminationBooking createBooking(Users user, ExaminationBookingRequest req) {
+        ServicePrice service = servicePriceRepository.findById(req.getServiceId())
+                .orElseThrow(() -> new RuntimeException("Service not found"));
 
         ExaminationBooking booking = new ExaminationBooking();
-        booking.setUser(user);
+        booking.setUser(user);  // ❗ Chính xác user từ token
         booking.setService(service);
         booking.setAppointmentDate(req.getAppointmentDate());
         booking.setName(req.getName());
@@ -39,40 +37,25 @@ public class ExaminationService {
 
         return examinationBookingRepository.save(booking);
     }
-
     @Transactional
     public void processBookingAfterPayment(Long bookingId) {
         ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại: " + bookingId));
 
+        // Lấy danh sách staff theo ID tăng dần
         List<Users> staffList = userRepository.findAllByRole_IdOrderByIdAsc(4);
+        staffList.sort(Comparator.comparingLong(Users::getId));
+
         if (staffList.isEmpty()) {
             throw new RuntimeException("Không có nhân viên nào để gán việc!");
         }
 
-        Users nextStaff;
-        var lastAssignedOpt = examinationBookingRepository.findTopByAssignedStaffIsNotNullOrderByIdDesc();
+        // Đếm tổng số booking đã gán staff
+        long assignedCount = examinationBookingRepository.countByAssignedStaffIsNotNull();
 
-        if (lastAssignedOpt.isEmpty() || lastAssignedOpt.get().getAssignedStaff() == null) {
-            nextStaff = staffList.get(0);
-        } else {
-            Long lastStaffId = (long) lastAssignedOpt.get().getAssignedStaff().getId();
-            int lastIdx = -1;
-
-            // SỬA LẠI CÁCH SO SÁNH BẰNG Objects.equals()
-            for (int i = 0; i < staffList.size(); i++) {
-                if (Objects.equals(staffList.get(i).getId(), lastStaffId)) {
-                    lastIdx = i;
-                    break;
-                }
-            }
-
-            if (lastIdx == -1) {
-                nextStaff = staffList.get(0);
-            } else {
-                nextStaff = staffList.get((lastIdx + 1) % staffList.size());
-            }
-        }
+        // Gán staff theo vòng tròn
+        int nextIndex = (int) (assignedCount % staffList.size());
+        Users nextStaff = staffList.get(nextIndex);
 
         booking.setAssignedStaff(nextStaff);
         booking.setStatus("Đã tiếp nhận");
@@ -142,7 +125,7 @@ public class ExaminationService {
 
         Users assigned = booking.getAssignedStaff();
 
-        // SỬA LẠI CÁCH SO SÁNH BẰNG Objects.equals()
+
         if (assigned == null || !Objects.equals(assigned.getId(), staffId)) {
             throw new RuntimeException("Bạn không phải nhân viên phụ trách xét nghiệm này");
         }
@@ -156,5 +139,39 @@ public class ExaminationService {
 
         booking.setStatus(newStatus);
         return examinationBookingRepository.save(booking);
+    }
+
+    public ExaminationBooking getBookingById(Long id) {
+        return examinationBookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+    }
+
+    public String refundBookingAndCancel(String txnRef) {
+        Optional<Payment> paymentOpt = paymentRepository.findByTxnRef(txnRef);
+        if (paymentOpt.isEmpty()) throw new RuntimeException("Không tìm thấy thanh toán");
+
+        Payment payment = paymentOpt.get();
+        if (!"Thành công".equals(payment.getPaymentStatus()))
+            throw new RuntimeException("Không thể hoàn tiền do chưa thanh toán thành công");
+
+        ExaminationBooking booking = payment.getExaminationBooking();
+
+        if (!List.of("Chờ thanh toán", "Đã tiếp nhận").contains(booking.getStatus()))
+            throw new RuntimeException("Không thể hủy do booking đã được xử lý");
+
+        if (booking.getAppointmentDate().isBefore(LocalDateTime.now().plusHours(6)))
+            throw new RuntimeException("Phải hủy ít nhất 6 giờ trước giờ hẹn");
+
+
+        String response = vnpayService.refundPayment(txnRef, Long.parseLong(payment.getAmount()), booking.getUser().getEmail());
+
+        // Cập nhật DB
+        booking.setStatus("Đã hủy");
+        payment.setPaymentStatus("Đã hoàn tiền");
+        payment.setRefundedAt(LocalDateTime.now());
+        examinationBookingRepository.save(booking);
+        paymentRepository.save(payment);
+
+        return "Hoàn tiền thành công: " + response;
     }
 }

@@ -6,6 +6,11 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -58,4 +63,32 @@ public class VnPayUtils {
         }
         return sb.toString();
     }
+
+    public static String refundPayment(Map<String, String> params) throws Exception {
+        String baseUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"; // Hoặc prod URL
+        URL url = new URL(baseUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setDoOutput(true);
+
+        StringBuilder data = new StringBuilder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (data.length() > 0) data.append("&");
+            data.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            data.append("=");
+            data.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+        }
+
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = data.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            return br.lines().collect(Collectors.joining("\n"));
+        }
+    }
+
 }

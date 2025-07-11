@@ -3,6 +3,7 @@ package com.group1.project.swp_project.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -24,8 +25,8 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     private DayOfWeek dayOfWeek;
 
-    private LocalTime startTime;
-    private LocalTime endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     private Double price;
 
@@ -40,8 +41,8 @@ public class Schedule {
     private Users consultant;
 
     public enum ScheduleType {
-        HANG_TUAN, // Hàng tuần
-        HANG_NGAY // Hàng ngày
+        HANG_TUAN,
+        HANG_NGAY
     }
 
     public enum DayOfWeek {

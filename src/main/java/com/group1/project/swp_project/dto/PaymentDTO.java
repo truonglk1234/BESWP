@@ -1,5 +1,7 @@
 package com.group1.project.swp_project.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,4 +15,7 @@ public class PaymentDTO {
     private Double amount;
     private String paymentMethod;
     private String paymentStatus;
+    private String transactionId;
+    private LocalDateTime paymentDate;
+    private String paymentNotes;
 }

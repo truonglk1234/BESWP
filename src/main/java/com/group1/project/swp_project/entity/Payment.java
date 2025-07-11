@@ -22,6 +22,10 @@ public class Payment {
     @JoinColumn(name = "booking_id", referencedColumnName = "id", nullable = false)
     private ExaminationBooking examinationBooking;
 
+    @OneToOne
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
+
     private String amount;
 
     @Column(name = "payment_method")

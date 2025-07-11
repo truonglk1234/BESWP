@@ -26,5 +26,5 @@ public interface ExaminationBookingRepository extends JpaRepository<ExaminationB
         Optional<ExaminationBooking> findDetailedById(@Param("id") Long id);
 
         List<ExaminationBooking> findByAssignedStaff_IdAndStatusIn(Long staffId, List<String> statuses);
-
+        long countByAssignedStaffIsNotNull();
 }

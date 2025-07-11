@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Đặt lịch xét nghiệm")
 @RestController
@@ -33,11 +34,13 @@ public class ExaminationBookingController {
     public ResponseEntity<?> createBooking(@RequestBody @NotNull ExaminationBookingRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+        System.out.println("✅ Đang booking với user email = " + email + ", ID = " + user.getId());
 
-        // Truyền thẳng ID kiểu Long, không cần ép kiểu
-        ExaminationBooking booking = examinationService.createBooking((long) user.getId(), request);
+        // ✅ Truyền user thay vì userId
+        ExaminationBooking booking = examinationService.createBooking(user, request);
         return ResponseEntity.ok(booking);
     }
 
@@ -94,5 +97,24 @@ public class ExaminationBookingController {
     public ResponseEntity<?> getBookingDetail(@PathVariable Long id) {
         ExaminationBookingDetailRes res = examinationService.getBookingDetail(id);
         return ResponseEntity.ok(res);
+    }
+
+    @DeleteMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancelBookingAndRefund(@PathVariable Long bookingId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ExaminationBooking booking = examinationService.getBookingById(bookingId);
+
+        if (!booking.getUser().getEmail().equals(email)) {
+            return ResponseEntity.status(403).body("Bạn không có quyền hủy booking này");
+        }
+
+        String txnRef = booking.getPayment().getTxnRef();
+        String result = examinationService.refundBookingAndCancel(txnRef);
+        return ResponseEntity.ok(Map.of("message", result));
     }
 }

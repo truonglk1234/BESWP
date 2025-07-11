@@ -1,5 +1,6 @@
 package com.group1.project.swp_project.service;
 
+import com.group1.project.swp_project.dto.ExaminationBookingDTO;
 import com.group1.project.swp_project.dto.req.ExaminationBookingRequest;
 import com.group1.project.swp_project.dto.res.ExaminationBookingDetailRes;
 import com.group1.project.swp_project.entity.*;
@@ -103,9 +104,9 @@ public class ExaminationService {
     }
 
 
-    public List<ExaminationBooking> getBookingsForUser(Long userId) {
-        return examinationBookingRepository.findByUserId(userId);
-    }
+//    public List<ExaminationBooking> getBookingsForUser(Long userId) {
+//        return examinationBookingRepository.findByUserId(userId);
+//    }
 
     public List<ExaminationBooking> getBookingsForStaff(Long staffId) {
         List<String> viewableStatuses = List.of(
@@ -173,5 +174,23 @@ public class ExaminationService {
         paymentRepository.save(payment);
 
         return "Hoàn tiền thành công: " + response;
+    }
+
+    public List<ExaminationBookingDTO> getBookingsForUser(Long userId) {
+        List<ExaminationBooking> bookings = examinationBookingRepository.findByUserId(userId);
+
+        return bookings.stream().map(b -> {
+            String result = (b.getPayment() != null && b.getPayment().getPaymentStatus().equals("Thành công"))
+                    ? "Chưa có kết quả"
+                    : "-";
+            return ExaminationBookingDTO.builder()
+                    .id(b.getId())
+                    .serviceName(b.getService().getName())
+                    .price(b.getService().getPrice())
+                    .appointmentDate(b.getAppointmentDate())
+                    .status(b.getStatus())
+                    .result(result)
+                    .build();
+        }).toList();
     }
 }

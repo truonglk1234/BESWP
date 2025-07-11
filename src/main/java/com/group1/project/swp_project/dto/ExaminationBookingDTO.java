@@ -15,8 +15,12 @@ public class ExaminationBookingDTO {
     private Long id;
     private Long userId;
     private Long serviceId;
+    private int price;
+
     private String serviceName;
     private LocalDateTime appointmentDate;
     private String status;
     private int amount;
+    private String result;
+
 }

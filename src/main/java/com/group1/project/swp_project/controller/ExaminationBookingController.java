@@ -1,5 +1,6 @@
 package com.group1.project.swp_project.controller;
 
+import com.group1.project.swp_project.dto.ExaminationBookingDTO;
 import com.group1.project.swp_project.dto.req.ExaminationBookingRequest;
 import com.group1.project.swp_project.dto.req.ExaminationResultRequest;
 import com.group1.project.swp_project.dto.res.ExaminationBookingDetailRes;
@@ -8,6 +9,7 @@ import com.group1.project.swp_project.entity.ExaminationResult;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import com.group1.project.swp_project.service.ExaminationService;
+import com.group1.project.swp_project.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,8 @@ public class ExaminationBookingController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/book")
     public ResponseEntity<?> createBooking(@RequestBody @NotNull ExaminationBookingRequest request) {
@@ -56,18 +60,29 @@ public class ExaminationBookingController {
         return ResponseEntity.ok(updated);
     }
 
+//    @GetMapping("/my-bookings")
+//    public ResponseEntity<List<ExaminationBooking>> getCurrentUserBookings() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String email = authentication.getName();
+//        Users user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
+//
+//        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+//        List<ExaminationBooking> bookings = examinationService.getBookingsForUser((long) user.getId());
+//        return ResponseEntity.ok(bookings);
+//    }
+
     @GetMapping("/my-bookings")
-    public ResponseEntity<List<ExaminationBooking>> getCurrentUserBookings() {
+    public ResponseEntity<?> getMyBookings() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
 
-        // Truyền thẳng ID kiểu Long, không cần ép kiểu
-        List<ExaminationBooking> bookings = examinationService.getBookingsForUser((long) user.getId());
+        List<ExaminationBookingDTO> bookings = examinationService.getBookingsForUser((long) user.getId());
         return ResponseEntity.ok(bookings);
     }
-
     @GetMapping("/staff/my-tasks")
     public ResponseEntity<List<ExaminationBooking>> getCurrentStaffTasks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

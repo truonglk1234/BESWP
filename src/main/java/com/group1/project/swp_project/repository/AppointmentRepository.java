@@ -10,5 +10,7 @@ import com.group1.project.swp_project.entity.Users;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    List<Appointment> findByUser(Users user);
+    List<Appointment> findByCustomer(Users customer);
+
+    List<Appointment> findByConsultant(Users consultant);
 }

@@ -4,19 +4,12 @@ import com.group1.project.swp_project.dto.ExaminationFeedbackView;
 import com.group1.project.swp_project.dto.req.FeedbackRequest;
 import com.group1.project.swp_project.entity.ExaminationBooking;
 import com.group1.project.swp_project.entity.ExaminationFeedback;
-import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.ExaminationBookingRepository;
 import com.group1.project.swp_project.repository.ExaminationFeedbackRepository;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class FeedbackService {
@@ -51,6 +44,7 @@ public class FeedbackService {
 
         feedbackRepo.save(feedback);
     }
+
     public List<ExaminationFeedbackView> getAll() {
         return feedbackRepo.findAll().stream().map(this::toView).toList();
     }
@@ -65,9 +59,7 @@ public class FeedbackService {
                 f.getRating(),
                 f.getComment(),
                 f.getService().getName(),
-                f.getCreatedAt()
-        );
+                f.getCreatedAt());
     }
-
 
 }

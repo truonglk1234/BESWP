@@ -1,6 +1,7 @@
 package com.group1.project.swp_project.controller;
 
 import com.group1.project.swp_project.dto.ScheduleDTO;
+import com.group1.project.swp_project.dto.ScheduleSlotDto;
 import com.group1.project.swp_project.entity.Schedule;
 import com.group1.project.swp_project.service.ScheduleService;
 
@@ -31,11 +32,23 @@ public class ScheduleController {
     }
 
     @GetMapping("/consultant/{consultantId}")
-    public ResponseEntity<List<Schedule>> getSchedulesByConsultant(@PathVariable int consultantId) {
-        List<Schedule> schedules = scheduleService.getSchedulesByConsultant(consultantId);
-        if (schedules.isEmpty()) {
+    public ResponseEntity<List<Schedule>> getAllSchedulesByConsultant(@PathVariable int consultantId) {
+        List<Schedule> slots = scheduleService.getSchedulesByConsultant(consultantId);
+        if (slots.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(schedules);
+        return ResponseEntity.ok(slots);
+    }
+
+    @GetMapping("/consultant/{consultantId}/availability")
+    public ResponseEntity<List<ScheduleSlotDto>> getAvailableSchedulesByDate(
+            @PathVariable int consultantId,
+            @RequestParam String date) {
+
+        List<ScheduleSlotDto> slots = scheduleService.getAvailableSchedulesByDate(consultantId, date);
+        if (slots.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(slots);
     }
 }

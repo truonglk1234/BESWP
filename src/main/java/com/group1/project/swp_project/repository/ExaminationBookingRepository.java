@@ -35,4 +35,10 @@ public interface ExaminationBookingRepository extends JpaRepository<ExaminationB
                 "GROUP BY YEAR(appointment_date), MONTH(appointment_date) " +
                 "ORDER BY YEAR(appointment_date), MONTH(appointment_date)", nativeQuery = true)
         List<Object[]> countMonthlyExaminations();
+
+        @Query(value = "SELECT sp.name AS serviceName, COUNT(*) AS count " +
+                "FROM examination_bookings eb " +
+                "JOIN service_price sp ON eb.service_id = sp.price_id " +
+                "GROUP BY sp.name", nativeQuery = true)
+        List<Object[]> countExaminationsByType();
 }

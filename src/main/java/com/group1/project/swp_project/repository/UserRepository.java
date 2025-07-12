@@ -34,4 +34,15 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
             "WHERE FUNCTION('MONTH', u.createdAt) = :month " +
             "AND FUNCTION('YEAR', u.createdAt) = :year")
     long countCreatedInMonth(@Param("month") int month, @Param("year") int year);
+
+    @Query(value = """
+                SELECT 
+                    FORMAT(created_at, 'yyyy-MM') AS month,
+                    COUNT(*) AS count
+                FROM users
+                WHERE role_id = 2
+                GROUP BY FORMAT(created_at, 'yyyy-MM')
+                ORDER BY FORMAT(created_at, 'yyyy-MM')
+            """, nativeQuery = true)
+    List<Object[]> getMonthlyUserStats();
 }

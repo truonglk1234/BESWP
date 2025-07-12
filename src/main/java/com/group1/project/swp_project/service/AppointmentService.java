@@ -114,7 +114,7 @@ public class AppointmentService {
         return new PaymentDTO(
                 p.getId(),
                 p.getAppointment() != null ? p.getAppointment().getAppointmentId() : null,
-                p.getAmount() != null ? Double.parseDouble(p.getAmount()) : null,
+                p.getAmount() != null ? Double.parseDouble(String.valueOf(p.getAmount())) : null,
                 p.getPaymentMethod(),
                 p.getPaymentStatus(),
                 p.getTxnRef(),

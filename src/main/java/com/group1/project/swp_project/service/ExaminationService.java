@@ -164,7 +164,7 @@ public class ExaminationService {
             throw new RuntimeException("Phải hủy ít nhất 6 giờ trước giờ hẹn");
 
 
-        String response = vnpayService.refundPayment(txnRef, Long.parseLong(payment.getAmount()), booking.getUser().getEmail());
+        String response = vnpayService.refundPayment(txnRef, Long.parseLong(String.valueOf(payment.getAmount())), booking.getUser().getEmail());
 
         // Cập nhật DB
         booking.setStatus("Đã hủy");

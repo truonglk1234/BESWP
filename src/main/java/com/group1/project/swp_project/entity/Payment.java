@@ -26,7 +26,7 @@ public class Payment {
     @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
-    private String amount;
+    private Long amount;
 
     @Column(name = "payment_method")
     private String paymentMethod; // e.g. VNPAY

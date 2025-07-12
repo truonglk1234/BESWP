@@ -62,7 +62,7 @@ public class PaymentController {
 
         Payment payment = new Payment();
         payment.setExaminationBooking(booking);
-        payment.setAmount(String.valueOf(amount));
+        payment.setAmount(Long.valueOf(String.valueOf(amount)));
         payment.setPaymentMethod("VNPAY");
         payment.setPaymentStatus("Đang xử lí");
         payment.setTxnRef(txnRef);
@@ -168,7 +168,7 @@ public class PaymentController {
         }
 
         // ✅ Gọi refund VNPay thực tế
-        String refundUrl = vnpayService.refundPayment(txnRef, Long.parseLong(payment.getAmount()), booking.getUser().getEmail());
+        String refundUrl = vnpayService.refundPayment(txnRef, Long.parseLong(String.valueOf(payment.getAmount())), booking.getUser().getEmail());
 
         // ✅ Cập nhật trạng thái sau khi tạo URL (tùy backend của bạn xử lý tiếp ra sao)
         payment.setPaymentStatus("Hoàn tiền");

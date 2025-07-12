@@ -27,6 +27,11 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
 
     List<Users> findAllByRole_IdOrderByIdAsc(int roleId);
 
-    @Query("SELECT u FROM Users u WHERE u.role.roleName = 'Staff' ORDER BY u.id ASC")
-    List<Users> findAllStaffOrderByIdAsc();
+    @Query("SELECT COUNT(u) FROM Users u WHERE u.role.id = :roleId")
+    long countByRoleId(@Param("roleId") int roleId);
+
+    @Query("SELECT COUNT(u) FROM Users u " +
+            "WHERE FUNCTION('MONTH', u.createdAt) = :month " +
+            "AND FUNCTION('YEAR', u.createdAt) = :year")
+    long countCreatedInMonth(@Param("month") int month, @Param("year") int year);
 }

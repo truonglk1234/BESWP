@@ -18,4 +18,7 @@ public interface BlogRepository extends JpaRepository<Blog,Integer> {
     List<Blog> findAllOrderByPendingFirst();
     @Query("SELECT b FROM Blog b WHERE b.createdBy.email = :email ORDER BY CASE WHEN b.status = 'Pending' THEN 0 ELSE 1 END, b.createdAt DESC")
     List<Blog> findByCreatedByEmailOrderByPendingFirst(@Param("email") String email);
+
+    @Query("SELECT COUNT(b) FROM Blog b WHERE b.status = 'Published' AND FUNCTION('MONTH', b.createdAt) = :month AND FUNCTION('YEAR', b.createdAt) = :year")
+    long countPublishedBlogsInMonth(@Param("month") int month, @Param("year") int year);
 }

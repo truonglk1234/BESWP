@@ -19,11 +19,11 @@ public class ExaminationResult {
     @JoinColumn(name = "booking_id")
     private ExaminationBooking booking;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String result;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(columnDefinition = "NVARCHAR(100)")
     private String advice;
-
+    @Column(columnDefinition = "NVARCHAR(30)")
     private String status;
 }

@@ -26,7 +26,8 @@ public class StaffExaminationBookingController {
             @RequestParam String status
     ) {
 
-        List<String> validTransitions = List.of("RECEIVED", "IN_PROGRESS", "DONE", "RESULT_RETURNED");
+        List<String> validTransitions = List.of("Đã tiếp nhận", "Đang xử lý", "Đang xét nghiệm", "Đã hoàn tất", "Đã trả kết quả");
+
         if (!validTransitions.contains(status)) {
             return ResponseEntity.badRequest().body("Trạng thái không hợp lệ");
         }

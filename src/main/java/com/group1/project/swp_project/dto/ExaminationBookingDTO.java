@@ -20,7 +20,14 @@ public class ExaminationBookingDTO {
     private String serviceName;
     private LocalDateTime appointmentDate;
     private String status;
-    private int amount;
+    private long amount;
     private String result;
+
+    private String name;
+    private String phone;
+    private String email;
+    private String note;
+
+
 
 }

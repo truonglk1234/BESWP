@@ -108,11 +108,24 @@ public class ExaminationService {
 //        return examinationBookingRepository.findByUserId(userId);
 //    }
 
-    public List<ExaminationBooking> getBookingsForStaff(Long staffId) {
+    public List<ExaminationBookingDTO> getBookingsForStaff(Long staffId) {
         List<String> viewableStatuses = List.of(
                 "Đã tiếp nhận", "Đang xử lý", "Đang xét nghiệm", "Đã hoàn tất", "Đã trả kết quả"
         );
-        return examinationBookingRepository.findByAssignedStaff_IdAndStatusIn(staffId, viewableStatuses);
+
+        List<ExaminationBooking> bookings = examinationBookingRepository.findByAssignedStaff_IdAndStatusIn(staffId, viewableStatuses);
+
+        return bookings.stream().map(b -> ExaminationBookingDTO.builder()
+                .id(b.getId())
+                .appointmentDate(b.getAppointmentDate())
+                .status(b.getStatus())
+                .name(b.getName())
+                .phone(b.getPhone())
+                .email(b.getEmail())
+                .note(b.getNote())
+                .serviceName(b.getService().getName())
+                .build()
+        ).toList();
     }
 
     public ExaminationBooking updateBookingStatus(Long bookingId, String newStatus, Long staffId) {
@@ -134,7 +147,7 @@ public class ExaminationService {
         List<String> validTransitions = List.of(
                 "Đã tiếp nhận", "Đang xử lý", "Đang xét nghiệm", "Đã hoàn tất", "Đã trả kết quả"
         );
-        if (!validTransitions.contains(newStatus)) {
+        if (!validTransitions.stream().anyMatch(s -> s.equalsIgnoreCase(newStatus.trim()))) {
             throw new RuntimeException("Trạng thái mới không hợp lệ");
         }
 

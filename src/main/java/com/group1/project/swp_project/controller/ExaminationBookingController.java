@@ -84,14 +84,15 @@ public class ExaminationBookingController {
         return ResponseEntity.ok(bookings);
     }
     @GetMapping("/staff/my-tasks")
-    public ResponseEntity<List<ExaminationBooking>> getCurrentStaffTasks() {
+    public ResponseEntity<List<ExaminationBookingDTO>> getCurrentStaffTasks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+
         Users staff = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Staff not found for email: " + email));
 
-        // Truyền thẳng ID kiểu Long, không cần ép kiểu
-        List<ExaminationBooking> bookings = examinationService.getBookingsForStaff((long) staff.getId());
+        List<ExaminationBookingDTO> bookings = examinationService.getBookingsForStaff((long) staff.getId());
+
         return ResponseEntity.ok(bookings);
     }
 

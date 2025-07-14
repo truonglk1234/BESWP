@@ -9,6 +9,7 @@ import com.group1.project.swp_project.repository.ExaminationFeedbackRepository;
 import com.group1.project.swp_project.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -55,11 +56,12 @@ public class FeedbackService {
 
     private ExaminationFeedbackView toView(ExaminationFeedback f) {
         return new ExaminationFeedbackView(
+                f.getBooking().getId(), // ✅ thêm bookingId vào
                 f.getUser().getProfile().getFullName(),
                 f.getRating(),
                 f.getComment(),
                 f.getService().getName(),
-                f.getCreatedAt());
+                f.getCreatedAt()
+        );
     }
-
 }

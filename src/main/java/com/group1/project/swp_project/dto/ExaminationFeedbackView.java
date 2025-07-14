@@ -6,10 +6,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExaminationFeedbackView {
+    private Long bookingId;
     private String fullName;
     private int rating;
     private String comment;

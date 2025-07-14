@@ -41,4 +41,7 @@ public interface ExaminationBookingRepository extends JpaRepository<ExaminationB
                 "JOIN service_price sp ON eb.service_id = sp.price_id " +
                 "GROUP BY sp.name", nativeQuery = true)
         List<Object[]> countExaminationsByType();
+
+        List<ExaminationBooking> findAllByOrderByAppointmentDateDesc();
+
 }

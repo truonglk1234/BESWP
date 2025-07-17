@@ -4,7 +4,7 @@ import com.group1.project.swp_project.dto.AppointmentDto;
 import com.group1.project.swp_project.dto.BookingRequest;
 import com.group1.project.swp_project.dto.PaymentDTO;
 import com.group1.project.swp_project.entity.Appointment;
-import com.group1.project.swp_project.entity.Payment;
+import com.group1.project.swp_project.entity.ExaminationPayment;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.AppointmentRepository;
 import com.group1.project.swp_project.repository.PaymentRepository;
@@ -82,13 +82,13 @@ public class AppointmentService {
     public PaymentDTO updatePaymentStatus(int appointmentId, String paymentStatus) {
         Appointment appt = appointmentRepo.findById((long) appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        if (appt.getPayment() == null) {
+        if (appt.getExaminationPayment() == null) {
             throw new RuntimeException("Payment not found");
         }
-        Payment payment = appt.getPayment();
-        payment.setPaymentStatus(paymentStatus);
-        paymentRepo.save(payment);
-        return mapToPaymentDto(payment);
+        ExaminationPayment examinationPayment = appt.getExaminationPayment();
+        examinationPayment.setPaymentStatus(paymentStatus);
+        paymentRepo.save(examinationPayment);
+        return mapToPaymentDto(examinationPayment);
     }
 
     // ✅ MAPPER DTO
@@ -107,10 +107,10 @@ public class AppointmentService {
                 appt.getConsultantNotes(),
                 appt.getConsultationFee(),
                 appt.getCreatedAt(),
-                appt.getPayment() != null ? mapToPaymentDto(appt.getPayment()) : null);
+                appt.getExaminationPayment() != null ? mapToPaymentDto(appt.getExaminationPayment()) : null);
     }
 
-    private PaymentDTO mapToPaymentDto(Payment p) {
+    private PaymentDTO mapToPaymentDto(ExaminationPayment p) {
         return new PaymentDTO(
                 p.getId(),
                 p.getAppointment() != null ? p.getAppointment().getAppointmentId() : null,

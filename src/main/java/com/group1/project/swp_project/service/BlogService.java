@@ -67,7 +67,6 @@ public class BlogService {
         blogRepository.deleteById(id);
     }
 
-    // Cập nhật vài viết
     public Blog updateBlog(int id, CreateBlogRequest request) {
         Blog existingBlog = blogRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bài viết không tồn tại"));

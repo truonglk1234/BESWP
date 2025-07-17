@@ -110,8 +110,7 @@ public class AuthController {
 
     @Operation(summary = "Reset user password with code", description = "Sets a new password for the user using a valid code.")
     @PostMapping("/reset-password-with-code")
-    public ResponseEntity<String> resetPasswordWithCode(
-            @Valid @RequestBody ResetPasswordWithCodeRequest request) {
+    public ResponseEntity<String> resetPasswordWithCode(@Valid @RequestBody ResetPasswordWithCodeRequest request) {
         try {
             authService.resetPasswordWithCode(request);
             return ResponseEntity.ok("Mật khẩu của bạn đã được đặt lại thành công.");

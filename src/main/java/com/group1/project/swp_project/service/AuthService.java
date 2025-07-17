@@ -31,7 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final VerificationTokenRepository tokenRepository;
-    private final EmailService emailService; // EmailService đã được nâng cấp
+    private final EmailService emailService;
 
 
     public static final String DEFAULT_ROLE_NAME = "Customer";
@@ -103,7 +103,7 @@ public class AuthService {
         String recipientAddress = savedUser.getEmail();
         String subject = "Mã xác thực tài khoản STI Health";
 
-        // Gọi phương thức mới của EmailService để gửi email HTML
+
         emailService.sendVerificationEmail(recipientAddress, subject, code);
 
 
@@ -111,7 +111,7 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        // ... (giữ nguyên) ...
+
         Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
         if (!user.isEnabled()) {
@@ -125,34 +125,6 @@ public class AuthService {
         return new LoginResponse(token, user.getRole().getRoleName(), user.getId());
     }
 
-    @Transactional
-    public void verifyCode(VerificationRequest request) {
-
-        Users user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email này."));
-
-        VerificationToken verificationToken = tokenRepository.findByUser(user);
-        if (verificationToken == null) {
-            throw new RuntimeException("Yêu cầu xác thực không hợp lệ hoặc tài khoản đã được kích hoạt.");
-        }
-        if (verificationToken.getExpiryDate().before(new java.util.Date())) {
-            tokenRepository.delete(verificationToken);
-            userRepository.delete(user);
-            throw new RuntimeException("Mã xác thực đã hết hạn. Vui lòng đăng ký lại.");
-        }
-        if (!verificationToken.getToken().equals(request.getCode())) {
-            throw new RuntimeException("Mã xác thực không chính xác.");
-        }
-
-        user.setEnabled(true);
-        UserStatus activeStatus = userStatusRepository.findByStatusName("Active")
-                .orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy trạng thái 'Active'."));
-        user.setStatus(activeStatus);
-
-        userRepository.save(user);
-
-        tokenRepository.delete(verificationToken);
-    }
 
     @Transactional
     public void resendVerificationCode(String email) {
@@ -183,33 +155,6 @@ public class AuthService {
         emailService.sendVerificationEmail(user.getEmail(), subject, newCde);
     }
 
-//    @Transactional
-//    public void requestPasswordResetCode(String email) {
-//        // 1. Tìm user bằng email
-//        Users user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
-//
-//        // 2. Tạo mã mới
-//        String code = generateVerificationCode();
-//
-//        // 3. Tìm xem user đã có token chưa
-//        VerificationToken passwordResetToken = tokenRepository.findByUser(user);
-//        if (passwordResetToken == null) {
-//            // Nếu chưa có, tạo mới
-//            passwordResetToken = new VerificationToken(code, user);
-//        } else {
-//            // Nếu có rồi, cập nhật lại mã và thời gian hết hạn
-//            passwordResetToken.setToken(code);
-//            passwordResetToken.resetExpiryDate();
-//        }
-//        tokenRepository.save(passwordResetToken);
-//
-//        // 4. Gửi email chứa mã
-//        // Bạn nên tạo một template HTML mới cho việc này (password-reset-email.html)
-//        String subject = "Mã đặt lại mật khẩu cho tài khoản STI Health";
-//        emailService.sendVerificationEmail(user.getEmail(), subject, code); // Tái sử dụng phương thức gửi email
-//    }
-
     @Transactional
     public void requestPasswordResetCode(String email) {
         Users user = userRepository.findByEmail(email)
@@ -225,7 +170,6 @@ public class AuthService {
             token.resetExpiryDate();
         }
         tokenRepository.save(token);
-
         emailService.sendResetPasswordEmail(user.getEmail(), code);
     }
 

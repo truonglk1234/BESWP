@@ -18,7 +18,6 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
-    // Api cho mọi người xem danh sách bài viết
     @Operation(summary = "Lấy danh sách các bài viết đã đăng", description = "Trả về danh sách tóm tắt của tất cả các bài viết đã được duyệt và đăng tải. Mọi người đều có thể truy cập.")
     @GetMapping
     public ResponseEntity<List<BlogSummary>> getAllBlogs() {

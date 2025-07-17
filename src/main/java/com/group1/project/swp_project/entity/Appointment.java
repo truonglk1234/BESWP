@@ -55,7 +55,7 @@ public class Appointment {
     private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Payment payment;
+    private ExaminationPayment examinationPayment;
 
     @PrePersist
     protected void onCreate() {

@@ -65,12 +65,9 @@ public class VnpayService {
                 String fieldName = itr.next();
                 String fieldValue = vnp_Params.get(fieldName);
                 if ((fieldValue != null) && (fieldValue.length() > 0)) {
-                    // Build hash data
                     hashData.append(fieldName);
                     hashData.append('=');
-                    // SỬA Ở ĐÂY: Dùng UTF-8 để mã hóa đúng tiếng Việt
                     hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
-                    // Build query
                     query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8.toString()));
                     query.append('=');
                     query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()));
@@ -102,11 +99,10 @@ public class VnpayService {
             body.put("vnp_TxnRef", vnp_TxnRef);
             body.put("vnp_Amount", String.valueOf(amount * 100));
             body.put("vnp_OrderInfo", "Hoàn tiền cho đơn #" + vnp_TxnRef);
-            body.put("vnp_TransactionNo", ""); // Nếu không biết TransactionNo
+            body.put("vnp_TransactionNo", "");
             body.put("vnp_CreateBy", userEmail);
             body.put("vnp_CreateDate", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 
-            // Hash
             List<String> sortedKeys = new ArrayList<>(body.keySet());
             Collections.sort(sortedKeys);
             StringBuilder dataToHash = new StringBuilder();
@@ -119,7 +115,7 @@ public class VnpayService {
             String secureHash = VnPayUtils.hmacSHA512(vnp_HashSecret, dataToHash.toString());
             body.put("vnp_SecureHash", secureHash);
 
-            // Gửi request thật
+
             String apiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"; // hoặc production URL
             HttpClient client = HttpClient.newHttpClient();
             ObjectMapper mapper = new ObjectMapper();

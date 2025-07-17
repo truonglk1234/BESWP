@@ -27,7 +27,6 @@ public class BlogManagementController {
     @Autowired
     private BlogService blogService;
 
-    // API tạo bài viết mới:  vai trò đều được tạo
     @Operation(
             summary = "Tạo một bài viết mới",
             description = "Tạo một bài viết mới với trạng thái 'Chờ duyệt'. Yêu cầu vai trò STAFF."
@@ -40,7 +39,6 @@ public class BlogManagementController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBlog);
     }
 
-    // API cập nhật bài viết: Cả 3 vai trò đều được sửa
     @Operation(
             summary = "Cập nhật một bài viết đã có",
             description = "Cập nhật tiêu đề, nội dung, hoặc hình ảnh của một bài viết. Yêu cầu vai trò ADMIN, MANAGER, hoặc STAFF."
@@ -48,11 +46,9 @@ public class BlogManagementController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Staff')")
     public ResponseEntity<Blog> updateBlog(@PathVariable int id, @RequestBody @Valid CreateBlogRequest request) {
-        // Cần thêm logic kiểm tra xem người sửa có phải là người tạo bài không, hoặc là admin/manager
         return ResponseEntity.ok(blogService.updateBlog(id, request));
     }
 
-    // API xóa bài viết: Cả 3 vai trò đều được xóa
     @Operation(
             summary = "Xóa một bài viết",
             description = "Xóa vĩnh viễn một bài viết. Yêu cầu vai trò ADMIN, MANAGER, hoặc STAFF."
@@ -60,12 +56,10 @@ public class BlogManagementController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('Admin', 'Manager', 'Staff')")
     public ResponseEntity<Void> deleteBlog(@PathVariable int id) {
-        // Tương tự, cần kiểm tra quyền sở hữu trước khi xóa
         blogService.deleteBlog(id);
         return ResponseEntity.noContent().build();
     }
 
-    // API lấy danh sách các bài viết đang chờ duyệt: Chỉ Manager và Admin
     @Operation(
             summary = "Lấy danh sách bài viết chờ duyệt",
             description = "Trả về danh sách các bài viết có trạng thái 'Chờ duyệt'. Yêu cầu vai trò ADMIN hoặc MANAGER."
@@ -76,7 +70,6 @@ public class BlogManagementController {
         return ResponseEntity.ok(blogService.getPendingBlogs());
     }
 
-    // API để duyệt một bài viết: Chỉ Manager
     @Operation(
             summary = "Phê duyệt một bài viết",
             description = "Thay đổi trạng thái của bài viết từ 'Chờ duyệt' sang 'Đã đăng'. Yêu cầu vai trò MANAGER."
@@ -89,7 +82,6 @@ public class BlogManagementController {
     }
 
 
-    // API để từ chối một bài viết: Chỉ Manager
     @Operation(
             summary = "Từ chối một bài viết",
             description = "Thay đổi trạng thái của bài viết từ 'Chờ duyệt' sang 'Bị từ chối'. Yêu cầu vai trò MANAGER."

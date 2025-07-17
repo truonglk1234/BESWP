@@ -37,7 +37,7 @@ public class ExaminationBooking {
     @Column(name = "note", columnDefinition = "NVARCHAR(MAX)")
     private String note;
     @OneToOne(mappedBy = "examinationBooking", cascade = CascadeType.ALL)
-    private Payment payment;
+    private ExaminationPayment examinationPayment;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
     @JsonIgnore

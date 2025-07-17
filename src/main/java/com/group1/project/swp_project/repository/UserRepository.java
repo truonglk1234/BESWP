@@ -1,6 +1,5 @@
 package com.group1.project.swp_project.repository;
 
-import com.group1.project.swp_project.entity.Role;
 import com.group1.project.swp_project.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

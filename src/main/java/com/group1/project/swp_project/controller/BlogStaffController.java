@@ -34,12 +34,10 @@ public class BlogStaffController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('Staff')")
     public ResponseEntity<Void> deleteBlog(@PathVariable int id) {
-        // Tương tự, cần kiểm tra quyền sở hữu trước khi xóa
         blogService.deleteBlog(id);
         return ResponseEntity.noContent().build();
     }
 
-    // API tạo bài viết mới:  vai trò đều được tạo
 
 
     @Operation(

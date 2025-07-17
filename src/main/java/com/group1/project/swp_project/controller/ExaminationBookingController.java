@@ -9,7 +9,6 @@ import com.group1.project.swp_project.entity.ExaminationResult;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.UserRepository;
 import com.group1.project.swp_project.service.ExaminationService;
-import com.group1.project.swp_project.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +30,6 @@ public class ExaminationBookingController {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private UserService userService;
 
     @PostMapping("/book")
     public ResponseEntity<?> createBooking(@RequestBody @NotNull ExaminationBookingRequest request) {
@@ -43,7 +40,7 @@ public class ExaminationBookingController {
                 .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
         System.out.println("✅ Đang booking với user email = " + email + ", ID = " + user.getId());
 
-        // ✅ Truyền user thay vì userId
+
         ExaminationBooking booking = examinationService.createBooking(user, request);
         return ResponseEntity.ok(booking);
     }
@@ -55,22 +52,11 @@ public class ExaminationBookingController {
         Users staff = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Staff not found for email: " + email));
 
-        // Truyền thẳng ID kiểu Long, không cần ép kiểu
+
         ExaminationBooking updated = examinationService.updateBookingStatus(bookingId, newStatus, (long) staff.getId());
         return ResponseEntity.ok(updated);
     }
 
-//    @GetMapping("/my-bookings")
-//    public ResponseEntity<List<ExaminationBooking>> getCurrentUserBookings() {
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String email = authentication.getName();
-//        Users user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("User not found for email: " + email));
-//
-//        // Truyền thẳng ID kiểu Long, không cần ép kiểu
-//        List<ExaminationBooking> bookings = examinationService.getBookingsForUser((long) user.getId());
-//        return ResponseEntity.ok(bookings);
-//    }
 
     @GetMapping("/my-bookings")
     public ResponseEntity<?> getMyBookings() {
@@ -129,7 +115,7 @@ public class ExaminationBookingController {
             return ResponseEntity.status(403).body("Bạn không có quyền hủy booking này");
         }
 
-        String txnRef = booking.getPayment().getTxnRef();
+        String txnRef = booking.getExaminationPayment().getTxnRef();
         String result = examinationService.refundBookingAndCancel(txnRef);
         return ResponseEntity.ok(Map.of("message", result));
     }

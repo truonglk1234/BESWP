@@ -25,14 +25,13 @@ import java.util.stream.Collectors;
 public class UserManagementService {
     @Autowired
     private UserRepository userRepository;
-    // KHÔNG cần RoleRepository ở đây
     @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
     private UserStatusRepository userStatusRepository;
     public List<UserSummary> getUsersByRole(String roleName) {
-        // Chỉ cần MỘT lần truy vấn database
+
         List<Users> users = userRepository.findAllByRoleName(roleName);
 
         return users.stream()

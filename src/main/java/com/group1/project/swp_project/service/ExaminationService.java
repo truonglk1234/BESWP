@@ -27,7 +27,7 @@ public class ExaminationService {
                 .orElseThrow(() -> new RuntimeException("Service not found"));
 
         ExaminationBooking booking = new ExaminationBooking();
-        booking.setUser(user);  // ❗ Chính xác user từ token
+        booking.setUser(user);
         booking.setService(service);
         booking.setAppointmentDate(req.getAppointmentDate());
         booking.setName(req.getName());
@@ -43,18 +43,14 @@ public class ExaminationService {
         ExaminationBooking booking = examinationBookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking không tồn tại: " + bookingId));
 
-        // Lấy danh sách staff theo ID tăng dần
         List<Users> staffList = userRepository.findAllByRole_IdOrderByIdAsc(4);
         staffList.sort(Comparator.comparingLong(Users::getId));
 
         if (staffList.isEmpty()) {
             throw new RuntimeException("Không có nhân viên nào để gán việc!");
         }
-
-        // Đếm tổng số booking đã gán staff
         long assignedCount = examinationBookingRepository.countByAssignedStaffIsNotNull();
 
-        // Gán staff theo vòng tròn
         int nextIndex = (int) (assignedCount % staffList.size());
         Users nextStaff = staffList.get(nextIndex);
 
@@ -89,7 +85,6 @@ public class ExaminationService {
     public ExaminationBookingDetailRes getBookingDetail(Long id) {
         ExaminationBooking booking = examinationBookingRepository.findDetailedById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch đặt"));
-
         return ExaminationBookingDetailRes.builder()
                 .id(booking.getId())
                 .serviceName(booking.getService().getName())
@@ -103,10 +98,6 @@ public class ExaminationService {
                 .build();
     }
 
-
-//    public List<ExaminationBooking> getBookingsForUser(Long userId) {
-//        return examinationBookingRepository.findByUserId(userId);
-//    }
 
     public List<ExaminationBookingDTO> getBookingsForStaff(Long staffId) {
         List<String> viewableStatuses = List.of(
@@ -161,14 +152,14 @@ public class ExaminationService {
     }
 
     public String refundBookingAndCancel(String txnRef) {
-        Optional<Payment> paymentOpt = paymentRepository.findByTxnRef(txnRef);
+        Optional<ExaminationPayment> paymentOpt = paymentRepository.findByTxnRef(txnRef);
         if (paymentOpt.isEmpty()) throw new RuntimeException("Không tìm thấy thanh toán");
 
-        Payment payment = paymentOpt.get();
-        if (!"Thành công".equals(payment.getPaymentStatus()))
+        ExaminationPayment examinationPayment = paymentOpt.get();
+        if (!"Thành công".equals(examinationPayment.getPaymentStatus()))
             throw new RuntimeException("Không thể hoàn tiền do chưa thanh toán thành công");
 
-        ExaminationBooking booking = payment.getExaminationBooking();
+        ExaminationBooking booking = examinationPayment.getExaminationBooking();
 
         if (!List.of("Chờ thanh toán", "Đã tiếp nhận").contains(booking.getStatus()))
             throw new RuntimeException("Không thể hủy do booking đã được xử lý");
@@ -177,14 +168,13 @@ public class ExaminationService {
             throw new RuntimeException("Phải hủy ít nhất 6 giờ trước giờ hẹn");
 
 
-        String response = vnpayService.refundPayment(txnRef, Long.parseLong(String.valueOf(payment.getAmount())), booking.getUser().getEmail());
+        String response = vnpayService.refundPayment(txnRef, Long.parseLong(String.valueOf(examinationPayment.getAmount())), booking.getUser().getEmail());
 
-        // Cập nhật DB
         booking.setStatus("Đã hủy");
-        payment.setPaymentStatus("Đã hoàn tiền");
-        payment.setRefundedAt(LocalDateTime.now());
+        examinationPayment.setPaymentStatus("Đã hoàn tiền");
+        examinationPayment.setRefundedAt(LocalDateTime.now());
         examinationBookingRepository.save(booking);
-        paymentRepository.save(payment);
+        paymentRepository.save(examinationPayment);
 
         return "Hoàn tiền thành công: " + response;
     }
@@ -193,7 +183,7 @@ public class ExaminationService {
         List<ExaminationBooking> bookings = examinationBookingRepository.findByUserId(userId);
 
         return bookings.stream().map(b -> {
-            String result = (b.getPayment() != null && b.getPayment().getPaymentStatus().equals("Thành công"))
+            String result = (b.getExaminationPayment() != null && b.getExaminationPayment().getPaymentStatus().equals("Thành công"))
                     ? "Chưa có kết quả"
                     : "-";
             return ExaminationBookingDTO.builder()

@@ -22,15 +22,15 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // ❗ Đổi từ findByPhone → findByEmail
+
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với email: " + email));
 
-        // Lấy vai trò (role)
+
         String roleName = user.getRole().getRoleName();
         GrantedAuthority authority = new SimpleGrantedAuthority(roleName);
 
-        // Trả về UserDetails với email là username
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import java.util.List;
 
 @Configuration
@@ -19,10 +20,6 @@ public class OpenApiConfig {
 
         return new OpenAPI()
                 .info(new Info().title("STI Health API").version("1.0").description("..."))
-
-                // --- CẬP NHẬT DANH SÁCH NÀY ---
-
-
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(
                         new Components()

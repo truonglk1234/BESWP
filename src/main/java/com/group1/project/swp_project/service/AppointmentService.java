@@ -5,6 +5,7 @@ import com.group1.project.swp_project.dto.BookingRequest;
 import com.group1.project.swp_project.dto.PaymentDTO;
 import com.group1.project.swp_project.entity.Appointment;
 import com.group1.project.swp_project.entity.ExaminationPayment;
+import com.group1.project.swp_project.entity.Schedule;
 import com.group1.project.swp_project.entity.Users;
 import com.group1.project.swp_project.repository.AppointmentRepository;
 import com.group1.project.swp_project.repository.PaymentRepository;
@@ -13,6 +14,7 @@ import com.group1.project.swp_project.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,43 +35,49 @@ public class AppointmentService {
         this.userRepo = userRepo;
     }
 
-    // ✅ BOOK APPOINTMENT
     public AppointmentDto bookAppointment(int customerId, BookingRequest request) {
-        Users customer = userRepo.findById((long) customerId)
+        Users customer = userRepo.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         Users consultant = userRepo.findById(request.getConsultantId())
                 .orElseThrow(() -> new RuntimeException("Consultant not found"));
 
+        Schedule schedule = scheduleRepo.findById(request.getScheduleId())
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+
+        if (schedule.getPrice() == null)
+            throw new RuntimeException("Schedule price is missing.");
+        if (schedule.getDurationMinutes() == null)
+            throw new RuntimeException("Schedule duration is missing.");
+
         Appointment appt = new Appointment();
         appt.setCustomer(customer);
         appt.setConsultant(consultant);
         appt.setAppointmentDate(request.getAppointmentDate());
-        appt.setDurationMinutes(request.getDurationMinutes());
+        appt.setDurationMinutes(schedule.getDurationMinutes());
         appt.setCustomerNotes(request.getCustomerNotes());
+        appt.setConsultationFee(schedule.getPrice());
         appt.setStatus(Appointment.AppointmentStatus.PENDING);
+
         appointmentRepo.save(appt);
 
         return mapToDto(appt);
     }
 
-    // ✅ CUSTOMER APPOINTMENTS
     public List<AppointmentDto> getCustomerAppointments(int customerId) {
-        Users customer = userRepo.findById((long) customerId)
+        Users customer = userRepo.findById(customerId)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
-        List<Appointment> list = appointmentRepo.findByCustomer(customer);
-        return list.stream().map(this::mapToDto).collect(Collectors.toList());
+        return appointmentRepo.findByCustomer(customer)
+                .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    // ✅ CONSULTANT APPOINTMENTS
     public List<AppointmentDto> getConsultantAppointments(int consultantId) {
-        Users consultant = userRepo.findById((long) consultantId)
+        Users consultant = userRepo.findById(consultantId)
                 .orElseThrow(() -> new RuntimeException("Consultant not found"));
-        List<Appointment> list = appointmentRepo.findByConsultant(consultant);
-        return list.stream().map(this::mapToDto).collect(Collectors.toList());
+        return appointmentRepo.findByConsultant(consultant)
+                .stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-    // ✅ UPDATE STATUS
     public AppointmentDto updateAppointmentStatus(int appointmentId, String status) {
         Appointment appt = appointmentRepo.findById((long) appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
@@ -78,28 +86,35 @@ public class AppointmentService {
         return mapToDto(appt);
     }
 
-    // ✅ UPDATE PAYMENT STATUS
     public PaymentDTO updatePaymentStatus(int appointmentId, String paymentStatus) {
         Appointment appt = appointmentRepo.findById((long) appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        if (appt.getExaminationPayment() == null) {
+        ExaminationPayment payment = appt.getExaminationPayment();
+        if (payment == null)
             throw new RuntimeException("Payment not found");
-        }
-        ExaminationPayment examinationPayment = appt.getExaminationPayment();
-        examinationPayment.setPaymentStatus(paymentStatus);
-        paymentRepo.save(examinationPayment);
-        return mapToPaymentDto(examinationPayment);
+
+        payment.setPaymentStatus(paymentStatus);
+        paymentRepo.save(payment);
+        return mapToPaymentDto(payment);
     }
 
-    // ✅ MAPPER DTO
+    // ✅ SAFE MAP TO DTO
     private AppointmentDto mapToDto(Appointment appt) {
+        String customerName = appt.getCustomer().getProfile() != null
+                ? appt.getCustomer().getProfile().getFullName()
+                : "Unknown";
+
+        String consultantName = appt.getConsultant().getProfile() != null
+                ? appt.getConsultant().getProfile().getFullName()
+                : "Unknown";
+
         return new AppointmentDto(
-                appt.getAppointmentId().intValue(),
+                appt.getAppointmentId(),
                 appt.getCustomer().getId(),
-                appt.getCustomer().getProfile().getFullName(),
+                customerName,
                 appt.getCustomer().getPhone(),
                 appt.getConsultant().getId(),
-                appt.getConsultant().getProfile().getFullName(),
+                consultantName,
                 appt.getAppointmentDate(),
                 appt.getDurationMinutes(),
                 appt.getStatus().name(),
@@ -114,12 +129,12 @@ public class AppointmentService {
         return new PaymentDTO(
                 p.getId(),
                 p.getAppointment() != null ? p.getAppointment().getAppointmentId() : null,
-                p.getAmount() != null ? Double.parseDouble(String.valueOf(p.getAmount())) : null,
+                p.getAmount() != null ? p.getAmount().doubleValue() : null,
                 p.getPaymentMethod(),
                 p.getPaymentStatus(),
                 p.getTxnRef(),
                 p.getPayDate(),
-                null // Nếu có notes thì bổ sung
+                null // Optional: payment notes nếu cần
         );
     }
 }

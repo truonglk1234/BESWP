@@ -23,7 +23,7 @@ import com.group1.project.swp_project.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 
 public class AppointmentController {
     private final AppointmentService appointmentService;

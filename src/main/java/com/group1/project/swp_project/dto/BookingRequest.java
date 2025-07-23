@@ -13,8 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BookingRequest {
     private int consultantId;
+    private int scheduleId;
     private LocalDateTime appointmentDate;
-    private int durationMinutes;
+
     private String customerNotes;
-    private String paymentMethod; // MOMO or CASH
+    private String paymentMethod;
 }

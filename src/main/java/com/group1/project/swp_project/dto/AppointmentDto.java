@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentDto {
-    private int id;
+    private long id;
     private int customerId;
     private String customerName;
     private String customerPhone;

@@ -24,7 +24,7 @@ import java.util.*;
 
 @Tag(name = "Thanh toán dịch vụ khám chữa bệnh")
 @RestController
-@RequestMapping("/api/v1/payment")
+@RequestMapping("/api/v1/examinationPayment")
 @RequiredArgsConstructor
 public class ExaminationPaymentController {
 
